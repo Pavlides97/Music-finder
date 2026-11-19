@@ -22,6 +22,7 @@ export const GENRES = [
   "Retro",
   "Rebetiko",
   "Palio Laiko",
+  "Paradosiako",
   "Jazz",
   "Greek",
   "Traditional Cypriot",

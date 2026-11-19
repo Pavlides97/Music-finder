@@ -62,7 +62,7 @@ export function Photo({
           )}
           <svg className="absolute bottom-0 left-0 right-0 h-1/3 w-full opacity-30" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden>
             {Array.from({ length: 40 }).map((_, i) => {
-              const h = 6 + Math.abs(Math.sin(i * 1.7 + hue)) * 30;
+              const h = Math.round(6 + Math.abs(Math.sin(i * 1.7 + hue)) * 30);
               return <rect key={i} x={i * 5} y={40 - h} width="3" height={h} rx="1.5" fill="white" />;
             })}
           </svg>

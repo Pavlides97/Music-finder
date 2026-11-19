@@ -29,15 +29,31 @@ type M = {
   budget?: [number, number]; // price per event in EUR, [from, to]
 };
 
-const SG = { type: "Singer", tagline: "Singer & guitarist", performances: ["Vocals & guitar"] };
+// Roles as listed by the platform owner. Performer type "Singer" is used for search.
+const VG = { type: "Singer", tagline: "Vocalist & guitarist", performances: ["Vocals & guitar"] };
+const V = { type: "Singer", tagline: "Vocalist", performances: ["Vocals"] };
+const VBL = { type: "Singer", tagline: "Vocalist, bouzouki & laouto", performances: ["Vocals", "Bouzouki", "Laouto"] };
+
+const MAIN = ["Laiko", "Entexno", "Pop", "Retro"];
+const PALIO = ["Palio Laiko", "Laiko"];
+const BUDGET: [number, number] = [300, 600];
 
 const MUSICIANS: M[] = [
-  { name: "Pavlos Pavlides", ...SG },
-  { name: "Smaragda Diamantidou", type: "Singer", tagline: "Singer", performances: ["Vocals"] },
-  { name: "Dimitris Panagi", ...SG },
-  { name: "Andreas Ioanou", ...SG },
-  { name: "Prodromos Tsolias", ...SG },
-  { name: "Andreas Napoleon", ...SG },
+  { name: "Pavlos Pavlides", ...VG, city: "Limassol", genres: MAIN, budget: BUDGET },
+  { name: "Smaragda Diamantidou", ...V, city: "Limassol", genres: MAIN, budget: BUDGET },
+  { name: "Dimitris Panagi", ...VG, city: "Limassol", genres: MAIN, budget: BUDGET },
+  { name: "Prodromos Tsolias", ...VG, city: "Limassol", genres: MAIN, budget: BUDGET },
+  { name: "Andreas Ioannou", ...VG, city: "Nicosia", genres: MAIN, budget: BUDGET },
+  { name: "Rafail Theodorou", ...V, city: "Limassol", genres: MAIN, budget: BUDGET },
+  { name: "Filipos Antoniou", ...V, city: "Limassol", genres: PALIO, budget: BUDGET },
+  { name: "Konstantinos Aggelopoulos", ...V, city: "Limassol", genres: PALIO, budget: BUDGET },
+  { name: "Andreas Napoleon", ...VG, city: "Nicosia", genres: MAIN, budget: BUDGET },
+  { name: "Soula Evangelou", ...V, city: "Limassol", genres: MAIN, budget: BUDGET },
+  { name: "Pampos Theodorou", ...VBL, city: "Limassol", genres: ["Laiko", "Entexno", "Palio Laiko", "Paradosiako"], budget: BUDGET },
+  { name: "Aristi Poulli", ...V, city: "Limassol", genres: MAIN, budget: BUDGET },
+  { name: "Myrto Meletiou", ...V, city: "Nicosia", genres: ["Jazz", "Entexno", "Pop", "Retro", "Rock"], budget: BUDGET },
+  { name: "Elena Anagiotou", ...V, city: "Limassol", genres: ["Jazz", "Entexno", "Pop", "Retro", "Laiko", "Rock"], budget: BUDGET },
+  { name: "Stefanos Stefanou", ...V, city: "Limassol", genres: ["Entexno", "Rock", "Laiko"], budget: BUDGET },
 ];
 
 type B = {
