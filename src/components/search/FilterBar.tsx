@@ -94,7 +94,7 @@ export function FilterBar({
         </div>
       </div>
 
-      <div className="hidden grid-cols-2 gap-3 rounded-2xl border border-line bg-surface p-4 lg:grid lg:grid-cols-6">{controls}</div>
+      <div className="glass hidden grid-cols-2 gap-3 rounded-2xl p-4 lg:grid lg:grid-cols-6">{controls}</div>
 
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
         {pending ? <Loader2 className="h-4 w-4 animate-spin text-flame" /> : null}

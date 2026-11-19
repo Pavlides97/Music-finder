@@ -74,13 +74,13 @@ export const BUSINESS_CATEGORIES = [
 
 export const BUDGET_STEPS = [150, 250, 400, 600, 900, 1500, 3000];
 
-export const CATEGORY_TILES: { genre: string; label: string; blurb: string; image: string }[] = [
-  { genre: "Laiko", label: "Laiko", blurb: "Bouzouki nights & live laiko", image: "photo-1514320291840-2e0a9bf2a9ae" },
-  { genre: "Traditional Cypriot", label: "Traditional Cypriot", blurb: "Violi, laouto & village songs", image: "photo-1460723237483-7a6dc9d0b212" },
-  { genre: "Jazz", label: "Jazz", blurb: "Trios, vocalists & lounge sets", image: "photo-1415201364774-f6f0bb35f28f" },
-  { genre: "House", label: "House & Electronic", blurb: "Sunset DJs & club headliners", image: "photo-1470225620780-dba8ba36b745" },
-  { genre: "Classical", label: "Classical", blurb: "Quartets for ceremonies", image: "photo-1465847899084-d164df4dedc6" },
-  { genre: "Rock", label: "Rock & Covers", blurb: "Full-band energy", image: "photo-1501386761578-eac5c94b800a" },
-  { genre: "Latin", label: "Latin", blurb: "Salsa, bachata & bossa", image: "photo-1504609813442-a8924e83f76e" },
-  { genre: "Acoustic", label: "Acoustic", blurb: "Intimate dinners & beach bars", image: "photo-1510915361894-db8b60106cb1" },
+export const CATEGORY_TILES: { genre: string; blurb: string; hue: number }[] = [
+  { genre: "Laiko", blurb: "Bouzouki nights & live laiko", hue: 24 },
+  { genre: "Entexno", blurb: "Poetic Greek song", hue: 330 },
+  { genre: "Pop", blurb: "Greek & international hits", hue: 290 },
+  { genre: "Retro", blurb: "Timeless 70s–90s favourites", hue: 40 },
+  { genre: "Rock", blurb: "Full-band energy", hue: 355 },
+  { genre: "Palio Laiko", blurb: "Classic laiko of the golden era", hue: 15 },
+  { genre: "Rebetiko", blurb: "Taverna blues of the city", hue: 260 },
+  { genre: "Paradosiako", blurb: "Traditional Cypriot & Greek", hue: 160 },
 ];

@@ -40,7 +40,7 @@ export function Footer() {
       </div>
       <div className="border-t border-line">
         <div className="container-x flex flex-col items-center justify-between gap-2 py-6 text-xs text-dim sm:flex-row">
-          <p>© {new Date().getFullYear()} SoundCY. MVP demo — all artists, venues and events are fictional sample data.</p>
+          <p>© {new Date().getFullYear()} SoundCY. Venues and gigs shown are sample data.</p>
           <p>Where Cyprus finds its sound.</p>
         </div>
       </div>

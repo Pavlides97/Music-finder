@@ -205,9 +205,20 @@ export function db(): Database {
   const file = process.env.DATABASE_PATH || path.join(process.cwd(), "data", "soundcy.db");
   fs.mkdirSync(path.dirname(file), { recursive: true });
   // Loaded at runtime so the bundler never tries to resolve it.
-  const { DatabaseSync } = process.getBuiltinModule("node:sqlite") as {
-    DatabaseSync: new (file: string) => Database;
-  };
+  // Silence Node's one-off "SQLite is experimental" warning (it is stable in practice
+  // and the dev overlay otherwise reports it as an issue).
+  const emit = process.emitWarning;
+  process.emitWarning = ((w: string | Error, ...rest: unknown[]) => {
+    if (String(typeof w === "string" ? w : w?.message).includes("SQLite")) return;
+    return (emit as (...a: unknown[]) => void).call(process, w, ...rest);
+  }) as typeof process.emitWarning;
+  let mod: { DatabaseSync: new (file: string) => Database };
+  try {
+    mod = process.getBuiltinModule("node:sqlite") as typeof mod;
+  } finally {
+    process.emitWarning = emit;
+  }
+  const { DatabaseSync } = mod;
   const raw = new DatabaseSync(file);
   // node:sqlite returns null-prototype rows; convert to plain objects so they can
   // be passed from Server to Client Components.

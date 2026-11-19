@@ -66,14 +66,13 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
               {m.verified ? (
                 <span className="chip border-violet/30 bg-violet/10 text-violet-2"><BadgeCheck className="h-3.5 w-3.5" /> Verified</span>
               ) : null}
-              {m.featured ? <span className="chip">★ Featured</span> : null}
             </div>
             <h1 className="display mt-3 text-4xl font-extrabold leading-none sm:text-6xl">{m.name}</h1>
             <p className="mt-3 text-lg text-muted">{m.tagline}</p>
             <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
               <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-flame" /> {m.location}, Cyprus</span>
               <RatingBadge rating={m.rating} count={m.review_count} />
-              <span className="inline-flex items-center gap-1.5"><Mic2 className="h-4 w-4 text-flame" /> {m.years_active}+ years performing</span>
+              {m.years_active > 0 && <span className="inline-flex items-center gap-1.5"><Mic2 className="h-4 w-4 text-flame" /> {m.years_active}+ years performing</span>}
               {m.members > 1 && <span className="inline-flex items-center gap-1.5"><Users className="h-4 w-4 text-flame" /> {m.members} members</span>}
             </div>
           </div>
@@ -211,9 +210,11 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
                   </div>
                 ) : null}
               </div>
-              <div className="mt-4 flex items-center gap-2 rounded-xl bg-lime/[0.07] px-3 py-2 text-xs text-lime">
-                <Clock className="h-3.5 w-3.5" /> Usually responds within {m.response_hours < 24 ? `${m.response_hours} hour${m.response_hours > 1 ? "s" : ""}` : `${Math.round(m.response_hours / 24)} day(s)`}
-              </div>
+              {m.response_hours > 0 && (
+                <div className="mt-4 flex items-center gap-2 rounded-xl bg-lime/[0.07] px-3 py-2 text-xs text-lime">
+                  <Clock className="h-3.5 w-3.5" /> Usually responds within {m.response_hours < 24 ? `${m.response_hours} hour${m.response_hours > 1 ? "s" : ""}` : `${Math.round(m.response_hours / 24)} day(s)`}
+                </div>
+              )}
               <div className="my-6 h-px bg-line" />
               {isOwner ? (
                 <div className="space-y-3 text-sm text-muted">

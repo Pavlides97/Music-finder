@@ -133,7 +133,7 @@ export async function saveMusicianProfile(_: FormState, fd: FormData): Promise<F
       str(fd, "tagline", 140),
       str(fd, "bio", 3000),
       str(fd, "experience", 1500),
-      num(fd, "years_active") ?? 1,
+      num(fd, "years_active") ?? 0,
       oneOf(str(fd, "performer_type"), PERFORMER_TYPES, "Solo artist"),
       oneOf(str(fd, "location"), LOCATIONS, "Nicosia"),
       JSON.stringify(list(fd, "genres", GENRES)),

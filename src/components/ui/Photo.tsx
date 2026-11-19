@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { cn, hashHue, initials, unsplash } from "@/lib/utils";
 
 /**
- * Image with a graceful, on-brand fallback (gradient + initials / waveform)
- * when the source is missing or fails to load.
+ * Image with an on-brand 3D fallback (glossy orb + initials over a soft colour
+ * field) when the source is missing or fails to load.
  */
 export function Photo({
   src,
@@ -31,41 +31,58 @@ export function Photo({
     const img = ref.current;
     if (img && img.complete && img.naturalWidth === 0) setFailed(true);
   }, [src]);
+
   const url = unsplash(src, w);
   const hue = hashHue(alt);
   const show = url && !failed;
+  const positioned = /\b(absolute|fixed)\b/.test(className ?? "");
+  const text = label ?? initials(alt);
+
   return (
-    <div className={cn(!/\b(absolute|fixed)\b/.test(className ?? "") && "relative", "overflow-hidden bg-surface-2", rounded, className)}>
+    <div className={cn(!positioned && "relative", "overflow-hidden bg-surface-2", rounded, className)}>
       {show ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img
-          ref={ref}
-          src={url}
-          alt={alt}
-          loading="lazy"
-          onError={() => setFailed(true)}
-          className={cn("h-full w-full object-cover", imgClassName)}
-        />
+        <img ref={ref} src={url} alt={alt} loading="lazy" onError={() => setFailed(true)} className={cn("h-full w-full object-cover", imgClassName)} />
       ) : (
         <div
-          className="absolute inset-0 flex items-center justify-center"
-          style={{
-            background: `radial-gradient(120% 90% at 20% 10%, hsl(${hue} 85% 58% / .85), transparent 60%), radial-gradient(100% 90% at 90% 100%, hsl(${(hue + 60) % 360} 80% 50% / .8), transparent 60%), #141826`,
-          }}
           role="img"
           aria-label={alt}
+          className={cn("absolute inset-0 [container-type:size]", imgClassName)}
+          style={{
+            background: `radial-gradient(90% 70% at 15% 0%, hsl(${hue} 70% 45% / .45), transparent 60%),
+              radial-gradient(80% 70% at 100% 100%, hsl(${(hue + 50) % 360} 75% 45% / .4), transparent 60%),
+              linear-gradient(160deg, #161a28, #0c0e16)`,
+          }}
         >
-          {label !== "" && (
-            <span className="display select-none text-[clamp(1rem,30%,3.5rem)] font-bold text-white/85 drop-shadow">
-              {label ?? initials(alt)}
-            </span>
+          {text !== "" ? (
+            <div className="absolute inset-0 grid place-items-center">
+              <div
+                className="orb grid aspect-square w-[min(52cqw,52cqh)] place-items-center"
+                style={
+                  {
+                    "--orb-a": `hsl(${hue} 85% 62%)`,
+                    "--orb-b": `hsl(${(hue + 40) % 360} 70% 32%)`,
+                    "--orb-glow": `hsl(${hue} 90% 55% / .45)`,
+                  } as React.CSSProperties
+                }
+              >
+                <span className="display select-none text-[min(17cqw,17cqh)] font-extrabold leading-none text-white drop-shadow-[0_2px_8px_rgb(0_0_0/0.35)]">
+                  {text}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div
+              className="orb absolute -right-[10%] -top-[30%] aspect-square w-[55%] opacity-50 blur-[2px]"
+              style={
+                {
+                  "--orb-a": `hsl(${hue} 80% 55%)`,
+                  "--orb-b": `hsl(${(hue + 40) % 360} 70% 28%)`,
+                  "--orb-glow": "transparent",
+                } as React.CSSProperties
+              }
+            />
           )}
-          <svg className="absolute bottom-0 left-0 right-0 h-1/3 w-full opacity-30" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden>
-            {Array.from({ length: 40 }).map((_, i) => {
-              const h = Math.round(6 + Math.abs(Math.sin(i * 1.7 + hue)) * 30);
-              return <rect key={i} x={i * 5} y={40 - h} width="3" height={h} rx="1.5" fill="white" />;
-            })}
-          </svg>
         </div>
       )}
     </div>

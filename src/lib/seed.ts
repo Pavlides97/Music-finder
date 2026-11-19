@@ -253,8 +253,8 @@ export function seed(conn: Database) {
 
     // Musicians: placeholder accounts with an unusable random password, so nobody can
     // log in as them until the profile is handed over to the musician.
-    const insM = conn.prepare(`INSERT INTO musicians (user_id, slug, name, tagline, performer_type, location, performances, genres, price_from, price_to, featured, verified)
-      VALUES (?,?,?,?,?,?,?,?,?,?,1,0)`);
+    const insM = conn.prepare(`INSERT INTO musicians (user_id, slug, name, tagline, performer_type, location, performances, genres, price_from, price_to, featured, verified, years_active, response_hours)
+      VALUES (?,?,?,?,?,?,?,?,?,?,1,0,0,0)`);
     MUSICIANS.forEach((m) => {
       const slug = m.name.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
       const u = insUser.run(`${slug}@unclaimed.soundcy.app`, hashPassword(randomBytes(24).toString("hex")), "musician", m.name);

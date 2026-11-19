@@ -24,8 +24,8 @@ export function HeroSearch() {
   const sel = "w-full min-w-0 appearance-none bg-transparent text-sm font-medium text-fg outline-none [&>option]:bg-surface-2";
 
   return (
-    <div className="w-full max-w-4xl">
-      <div className="mb-3 inline-flex rounded-full border border-line bg-ink/60 p-1 backdrop-blur">
+    <div className="mx-auto w-full max-w-5xl">
+      <div className="glass mb-3 inline-flex rounded-full p-1">
         {(["musicians", "gigs"] as const).map((m) => (
           <button
             key={m}
@@ -39,7 +39,7 @@ export function HeroSearch() {
       </div>
       <form
         onSubmit={submit}
-        className="grid gap-1 rounded-2xl border border-line-strong bg-surface/80 p-2 shadow-[0_30px_80px_-30px_rgb(0_0_0/0.8)] backdrop-blur-xl sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]"
+        className="glass grid gap-1 rounded-3xl p-2 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]"
       >
         <label className={field}>
           <MapPin className="h-4 w-4 shrink-0 text-flame" />

@@ -3,13 +3,15 @@ import { BadgeCheck, CalendarDays, Clock, Euro, MapPin, Users, Flame, Music2 } f
 import type { Business, Gig, Musician } from "@/lib/data";
 import { budgetRange, daysUntil, fmtDate, priceRange } from "@/lib/utils";
 import { Photo } from "./ui/Photo";
+import { Tilt } from "./ui/Tilt";
 import { RatingBadge } from "./ui/Stars";
 
 export function MusicianCard({ m, priority }: { m: Musician; priority?: boolean }) {
   return (
+    <Tilt className="h-full rounded-2xl">
     <Link
       href={`/musicians/${m.slug}`}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-surface transition duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-[0_20px_60px_-20px_rgb(255_122_26/0.35)]"
+      className="group elevated relative flex h-full flex-col overflow-hidden rounded-2xl border border-line transition duration-300 hover:border-line-strong"
     >
       <div className="relative aspect-[4/5] overflow-hidden">
         <Photo
@@ -22,7 +24,6 @@ export function MusicianCard({ m, priority }: { m: Musician; priority?: boolean 
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent" />
         <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
           <span className="rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-semibold text-fg backdrop-blur">{m.performer_type}</span>
-          {m.featured ? <span className="rounded-full bg-flame px-2.5 py-1 text-[11px] font-bold text-ink">Featured</span> : null}
         </div>
         <div className="absolute inset-x-0 bottom-0 p-4">
           <h3 className="display flex items-center gap-1.5 text-xl font-bold leading-tight text-white">
@@ -56,15 +57,17 @@ export function MusicianCard({ m, priority }: { m: Musician; priority?: boolean 
         </div>
       </div>
     </Link>
+    </Tilt>
   );
 }
 
 export function GigCard({ g, compact }: { g: Gig; compact?: boolean }) {
   const left = daysUntil(g.deadline);
   return (
+    <Tilt className="h-full rounded-2xl" max={4}>
     <Link
       href={`/gigs/${g.id}`}
-      className="group flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 transition hover:border-flame/40 hover:bg-surface-2"
+      className="group elevated flex h-full flex-col gap-4 rounded-2xl border border-line p-5 transition hover:border-flame/40"
     >
       <div className="flex items-start gap-3">
         <Photo src={g.business_logo} alt={g.business_name} w={160} className="h-12 w-12 shrink-0 rounded-xl" />
@@ -104,12 +107,14 @@ export function GigCard({ g, compact }: { g: Gig; compact?: boolean }) {
         </span>
       </div>
     </Link>
+    </Tilt>
   );
 }
 
 export function VenueCard({ b }: { b: Business }) {
   return (
-    <Link href={`/venues/${b.slug}`} className="group overflow-hidden rounded-2xl border border-line bg-surface transition hover:-translate-y-1 hover:border-line-strong">
+    <Tilt className="h-full rounded-2xl">
+    <Link href={`/venues/${b.slug}`} className="group elevated block h-full overflow-hidden rounded-2xl border border-line transition hover:border-line-strong">
       <div className="relative h-36">
         <Photo src={b.cover} alt={b.name} w={700} label="" className="absolute inset-0" imgClassName="transition duration-700 group-hover:scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent" />
@@ -139,5 +144,6 @@ export function VenueCard({ b }: { b: Business }) {
         </div>
       </div>
     </Link>
+    </Tilt>
   );
 }
