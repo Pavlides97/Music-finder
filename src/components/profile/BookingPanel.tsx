@@ -112,9 +112,9 @@ export function BookingPanel({
                   <span className="label">Your offer (EUR)</span>
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">€</span>
-                    <input name="price" type="number" min={1} required defaultValue={musician.price_from} className="input pl-8" />
+                    <input name="price" type="number" min={1} required defaultValue={musician.price_from || undefined} placeholder="Your offer" className="input pl-8" />
                   </div>
-                  <span className="mt-1 block text-[11px] text-dim">{musician.name}&apos;s rates start from {euro(musician.price_from)}. They can accept or send a counter-offer.</span>
+                  <span className="mt-1 block text-[11px] text-dim">{musician.price_from > 0 ? <>{musician.name}&apos;s rates start from {euro(musician.price_from)}. </> : null}They can accept or send a counter-offer.</span>
                 </label>
                 <label className="block">
                   <span className="label">Message</span>

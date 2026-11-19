@@ -2,7 +2,7 @@
 
 A two-sided music booking marketplace for Cyprus. Restaurants, hotels, bars, clubs, wedding planners, event organisers and festivals find and book musicians. Singers, bands, DJs, instrumentalists and orchestras get discovered, apply to gigs and manage bookings.
 
-> MVP demo: every artist, venue and event in the seed data is fictional.
+> Musician profiles are real artists listed with their approval. Venues, gigs and the demo venue login are fictional sample data.
 
 ## Quick start
 
@@ -13,16 +13,11 @@ npm install
 npm run dev        # http://localhost:3000
 ```
 
-On first request, the app creates the database in `data/soundcy.db` and fills it with sample data: 16 musicians, 8 venues, 14 gigs, plus bookings, chats and reviews. Dates are relative to today, so the demo always looks current.
+On first request, the app creates the database in `data/soundcy.db` and adds the musician profiles plus sample venues and gigs. Gig dates are relative to today, so the demo always looks current.
 
-**Demo accounts** (use the one-click buttons on `/login`; password `demo1234`):
+Musician profiles start with only a name, performer type and "Price on request". Their accounts have random passwords, so nobody can log in as them until the profile is handed over to the musician.
 
-| Role | Email |
-| --- | --- |
-| Musician: Eleni Charalambous (jazz singer, Limassol) | `eleni@demo.soundcy.app` |
-| Business: The Old Port Bistro (restaurant, Limassol) | `oldport@demo.soundcy.app` |
-
-Every other seeded profile also has a `@demo.soundcy.app` login.
+**Demo venue account** (use the one-click button on `/login`; password `demo1234`): The Old Port Bistro, `oldport@demo.soundcy.app`. Every other sample venue also has a `@demo.soundcy.app` login.
 
 ```bash
 npm run db:reset   # wipe the DB; it is re-seeded on the next start

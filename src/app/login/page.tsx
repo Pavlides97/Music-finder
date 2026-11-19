@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Building2, Mic2, Sparkles } from "lucide-react";
+import { Building2, Sparkles } from "lucide-react";
 import { getUser } from "@/lib/auth";
 import { demoLoginAction } from "@/app/actions";
 import { AuthShell } from "@/components/auth/AuthShell";
@@ -10,7 +10,6 @@ import { LoginForm } from "@/components/auth/LoginForm";
 export const metadata: Metadata = { title: "Log in" };
 
 const DEMOS = [
-  { email: "eleni@demo.soundcy.app", name: "Eleni Charalambous", sub: "Jazz singer · Limassol", icon: Mic2, tone: "text-violet-2 bg-violet/15" },
   { email: "oldport@demo.soundcy.app", name: "The Old Port Bistro", sub: "Restaurant · Limassol", icon: Building2, tone: "text-flame bg-flame/10" },
 ];
 
@@ -23,7 +22,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <p className="mt-2 text-muted">Log in to manage bookings, gigs and messages.</p>
 
       <div className="mt-8 rounded-2xl border border-lime/20 bg-lime/[0.04] p-4">
-        <p className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-lime"><Sparkles className="h-3.5 w-3.5" /> One-click demo accounts</p>
+        <p className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-lime"><Sparkles className="h-3.5 w-3.5" /> One-click demo venue account</p>
         <div className="grid gap-2">
           {DEMOS.map((d) => (
             <form key={d.email} action={demoLoginAction}>

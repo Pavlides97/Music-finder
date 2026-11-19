@@ -73,7 +73,7 @@ export default function Home() {
                 <Photo src={heroShots[0].avatar} alt={heroShots[0].name} className="h-72" w={600} />
                 <div className="p-3">
                   <p className="text-sm font-bold">{heroShots[0].name}</p>
-                  <p className="text-xs text-muted">{heroShots[0].genres.slice(0, 2).join(" · ")} · {heroShots[0].location}</p>
+                  <p className="text-xs text-muted">{[...heroShots[0].genres.slice(0, 2), heroShots[0].location].join(" · ")}</p>
                 </div>
               </div>
             )}

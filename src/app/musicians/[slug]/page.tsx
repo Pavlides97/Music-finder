@@ -201,8 +201,8 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
             <div className="card p-6">
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-xs text-muted">Starting from</p>
-                  <p className="display text-4xl font-extrabold">{euro(m.price_from)}</p>
+                  <p className="text-xs text-muted">{m.price_from > 0 ? "Starting from" : "Pricing"}</p>
+                  <p className="display text-4xl font-extrabold">{m.price_from > 0 ? euro(m.price_from) : "On request"}</p>
                 </div>
                 {m.hourly_rate ? (
                   <div className="text-right">

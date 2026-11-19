@@ -45,11 +45,17 @@ export function MusicianCard({ m, priority }: { m: Musician; priority?: boolean 
           <RatingBadge rating={m.rating} count={m.review_count} />
         </div>
         <div className="flex items-baseline justify-between border-t border-line pt-3">
-          <span className="text-xs text-muted">From</span>
-          <span className="display text-lg font-bold text-fg">
-            {euro(m.price_from)}
-            <span className="ml-1 text-xs font-normal text-muted">/ event</span>
-          </span>
+          {m.price_from > 0 ? (
+            <>
+              <span className="text-xs text-muted">From</span>
+              <span className="display text-lg font-bold text-fg">
+                {euro(m.price_from)}
+                <span className="ml-1 text-xs font-normal text-muted">/ event</span>
+              </span>
+            </>
+          ) : (
+            <span className="text-sm font-semibold text-muted">Price on request</span>
+          )}
         </div>
       </div>
     </Link>
