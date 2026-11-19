@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS musicians (
   languages TEXT NOT NULL DEFAULT '[]',
   members INTEGER NOT NULL DEFAULT 1,
   price_from INTEGER NOT NULL DEFAULT 200,
+  price_to INTEGER,
   hourly_rate INTEGER,
   avatar TEXT,
   cover TEXT,
@@ -226,6 +227,9 @@ export function db(): Database {
   };
   conn.exec("PRAGMA busy_timeout = 5000;");
   conn.exec(SCHEMA);
+  // Lightweight migrations for databases created by earlier versions.
+  const cols = conn.prepare("PRAGMA table_info(musicians)").all().map((c) => String(c.name));
+  if (!cols.includes("price_to")) conn.exec("ALTER TABLE musicians ADD COLUMN price_to INTEGER");
   g.__soundcyDb = conn;
   const count = conn.prepare("SELECT COUNT(*) AS n FROM users").get() as { n: number };
   if (!count.n) {

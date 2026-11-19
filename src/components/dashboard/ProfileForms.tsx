@@ -78,7 +78,8 @@ export function MusicianProfileForm({ m }: { m: Musician }) {
 
       <Card title="Rates" desc="Shown publicly as a starting point — you'll agree the final price per booking.">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Starting price per event (€)"><input name="price_from" type="number" min={0} defaultValue={m.price_from} className="input" /></Field>
+          <Field label="Price per event — from (€)"><input name="price_from" type="number" min={0} defaultValue={m.price_from || ""} className="input" /></Field>
+          <Field label="Price per event — up to (€, optional)"><input name="price_to" type="number" min={0} defaultValue={m.price_to ?? ""} className="input" /></Field>
           <Field label="Hourly rate (€, optional)"><input name="hourly_rate" type="number" min={0} defaultValue={m.hourly_rate ?? ""} className="input" /></Field>
         </div>
       </Card>

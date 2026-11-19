@@ -21,7 +21,7 @@ import {
 import { getViewer } from "@/lib/auth";
 import { getBusyDates, getMusicianBySlug, getReviews, isSaved, similarMusicians } from "@/lib/data";
 import { toEmbed } from "@/lib/embed";
-import { euro, timeAgo } from "@/lib/utils";
+import { euro, priceRange, timeAgo } from "@/lib/utils";
 import { Photo } from "@/components/ui/Photo";
 import { RatingBadge, Stars } from "@/components/ui/Stars";
 import { AudioPlayer } from "@/components/profile/AudioPlayer";
@@ -201,8 +201,8 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
             <div className="card p-6">
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-xs text-muted">{m.price_from > 0 ? "Starting from" : "Pricing"}</p>
-                  <p className="display text-4xl font-extrabold">{m.price_from > 0 ? euro(m.price_from) : "On request"}</p>
+                  <p className="text-xs text-muted">Price per event</p>
+                  <p className="display text-3xl font-extrabold">{priceRange(m.price_from, m.price_to) ?? "On request"}</p>
                 </div>
                 {m.hourly_rate ? (
                   <div className="text-right">

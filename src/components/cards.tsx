@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BadgeCheck, CalendarDays, Clock, Euro, MapPin, Users, Flame, Music2 } from "lucide-react";
 import type { Business, Gig, Musician } from "@/lib/data";
-import { budgetRange, daysUntil, euro, fmtDate } from "@/lib/utils";
+import { budgetRange, daysUntil, fmtDate, priceRange } from "@/lib/utils";
 import { Photo } from "./ui/Photo";
 import { RatingBadge } from "./ui/Stars";
 
@@ -45,13 +45,10 @@ export function MusicianCard({ m, priority }: { m: Musician; priority?: boolean 
           <RatingBadge rating={m.rating} count={m.review_count} />
         </div>
         <div className="flex items-baseline justify-between border-t border-line pt-3">
-          {m.price_from > 0 ? (
+          {priceRange(m.price_from, m.price_to) ? (
             <>
-              <span className="text-xs text-muted">From</span>
-              <span className="display text-lg font-bold text-fg">
-                {euro(m.price_from)}
-                <span className="ml-1 text-xs font-normal text-muted">/ event</span>
-              </span>
+              <span className="text-xs text-muted">Per event</span>
+              <span className="display text-lg font-bold text-fg">{priceRange(m.price_from, m.price_to)}</span>
             </>
           ) : (
             <span className="text-sm font-semibold text-muted">Price on request</span>

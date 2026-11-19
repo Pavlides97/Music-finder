@@ -15,9 +15,14 @@ export const LOCATIONS = [
 ] as const;
 
 export const GENRES = [
-  "Jazz",
-  "Rock",
+  "Laiko",
   "Pop",
+  "Entexno",
+  "Rock",
+  "Retro",
+  "Rebetiko",
+  "Palio Laiko",
+  "Jazz",
   "Greek",
   "Traditional Cypriot",
   "Electronic",
@@ -69,7 +74,7 @@ export const BUSINESS_CATEGORIES = [
 export const BUDGET_STEPS = [150, 250, 400, 600, 900, 1500, 3000];
 
 export const CATEGORY_TILES: { genre: string; label: string; blurb: string; image: string }[] = [
-  { genre: "Greek", label: "Greek & Laiko", blurb: "Bouzouki nights & live laiko", image: "photo-1514320291840-2e0a9bf2a9ae" },
+  { genre: "Laiko", label: "Laiko", blurb: "Bouzouki nights & live laiko", image: "photo-1514320291840-2e0a9bf2a9ae" },
   { genre: "Traditional Cypriot", label: "Traditional Cypriot", blurb: "Violi, laouto & village songs", image: "photo-1460723237483-7a6dc9d0b212" },
   { genre: "Jazz", label: "Jazz", blurb: "Trios, vocalists & lounge sets", image: "photo-1415201364774-f6f0bb35f28f" },
   { genre: "House", label: "House & Electronic", blurb: "Sunset DJs & club headliners", image: "photo-1470225620780-dba8ba36b745" },

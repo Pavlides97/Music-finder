@@ -43,6 +43,14 @@ export function addDays(base: Date, days: number) {
   return d;
 }
 
+/** Musician price: "€300 – €600", "From €300" or null when not set. */
+export function priceRange(from?: number | null, to?: number | null) {
+  if (from && to && to > from) return `${euro(from)} – ${euro(to)}`;
+  if (from) return `From ${euro(from)}`;
+  if (to) return `Up to ${euro(to)}`;
+  return null;
+}
+
 export function fmtDate(iso: string | null | undefined, opts: Intl.DateTimeFormatOptions = { weekday: "short", day: "numeric", month: "short" }) {
   if (!iso) return "—";
   const d = new Date(iso.length === 10 ? iso + "T12:00:00" : iso);

@@ -19,7 +19,15 @@ const ts = (n: number, hour = 12) => {
  * for the musician to complete after claiming their profile.
  * price 0 = "Price on request".
  */
-type M = { name: string; type: string; tagline: string; performances: string[] };
+type M = {
+  name: string;
+  type: string;
+  tagline: string;
+  performances: string[];
+  genres?: string[];
+  city?: string;
+  budget?: [number, number]; // price per event in EUR, [from, to]
+};
 
 const SG = { type: "Singer", tagline: "Singer & guitarist", performances: ["Vocals & guitar"] };
 
@@ -229,12 +237,12 @@ export function seed(conn: Database) {
 
     // Musicians: placeholder accounts with an unusable random password, so nobody can
     // log in as them until the profile is handed over to the musician.
-    const insM = conn.prepare(`INSERT INTO musicians (user_id, slug, name, tagline, performer_type, location, performances, price_from, featured, verified)
-      VALUES (?,?,?,?,?,?,?,0,1,0)`);
+    const insM = conn.prepare(`INSERT INTO musicians (user_id, slug, name, tagline, performer_type, location, performances, genres, price_from, price_to, featured, verified)
+      VALUES (?,?,?,?,?,?,?,?,?,?,1,0)`);
     MUSICIANS.forEach((m) => {
       const slug = m.name.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
       const u = insUser.run(`${slug}@unclaimed.soundcy.app`, hashPassword(randomBytes(24).toString("hex")), "musician", m.name);
-      insM.run(Number(u.lastInsertRowid), slug, m.name, m.tagline, m.type, "Island-wide", J(m.performances));
+      insM.run(Number(u.lastInsertRowid), slug, m.name, m.tagline, m.type, m.city ?? "Island-wide", J(m.performances), J(m.genres ?? []), m.budget?.[0] ?? 0, m.budget?.[1] ?? null);
     });
 
     // Fictional sample venues & gigs (demo business logins use password demo1234).

@@ -124,7 +124,7 @@ export async function saveMusicianProfile(_: FormState, fd: FormData): Promise<F
   db()
     .prepare(
       `UPDATE musicians SET name=?, slug=?, tagline=?, bio=?, experience=?, years_active=?, performer_type=?, location=?, genres=?, event_types=?,
-        performances=?, languages=?, members=?, price_from=?, hourly_rate=?, avatar=?, cover=?, photos=?, tracks=?, videos=?, phone=?, public_email=?, website=?, instagram=?
+        performances=?, languages=?, members=?, price_from=?, price_to=?, hourly_rate=?, avatar=?, cover=?, photos=?, tracks=?, videos=?, phone=?, public_email=?, website=?, instagram=?
        WHERE id = ?`,
     )
     .run(
@@ -141,7 +141,8 @@ export async function saveMusicianProfile(_: FormState, fd: FormData): Promise<F
       JSON.stringify(lines(fd, "performances")),
       JSON.stringify(str(fd, "languages", 200).split(",").map((s) => s.trim()).filter(Boolean)),
       num(fd, "members") ?? 1,
-      num(fd, "price_from") ?? 200,
+      num(fd, "price_from") ?? 0,
+      num(fd, "price_to"),
       num(fd, "hourly_rate"),
       str(fd, "avatar", 500) || null,
       str(fd, "cover", 500) || null,

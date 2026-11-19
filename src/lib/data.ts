@@ -22,6 +22,7 @@ export type Musician = {
   languages: string[];
   members: number;
   price_from: number;
+  price_to: number | null;
   hourly_rate: number | null;
   avatar: string | null;
   cover: string | null;
