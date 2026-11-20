@@ -18,6 +18,7 @@ export async function Footer() {
           <ul className="space-y-2 text-sm text-muted">
             <li><Link className="hover:text-fg" href="/musicians">{t.footer.browseMusicians}</Link></li>
             <li><Link className="hover:text-fg" href="/match">{t.nav.match}</Link></li>
+            <li><Link className="hover:text-fg" href="/whats-on">{t.wo.nav}</Link></li>
             <li><Link className="hover:text-fg" href="/dashboard/gigs/new">{t.footer.postGig}</Link></li>
             <li><Link className="hover:text-fg" href="/signup?role=business">{t.footer.createVenue}</Link></li>
           </ul>
@@ -28,6 +29,7 @@ export async function Footer() {
             <li><Link className="hover:text-fg" href="/gigs">{t.common.findGigs}</Link></li>
             <li><Link className="hover:text-fg" href="/venues">{t.footer.exploreVenues}</Link></li>
             <li><Link className="hover:text-fg" href="/signup?role=musician">{t.footer.createArtist}</Link></li>
+            <li><Link className="hover:text-fg" href="/about">{t.about.nav}</Link></li>
           </ul>
         </div>
         <div>

@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, CalendarDays, Check, Clock, Euro, MapPin, Send, Sparkles, X, Repeat2, Ban, Flag } from "lucide-react";
 import { bookingAction, sendMessageAction } from "@/app/actions";
 import type { Booking, Message } from "@/lib/data";
-import { cn } from "@/lib/utils";
+import { cn, cyDate } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/client";
 import { locale } from "@/lib/i18n/core";
 import { Photo } from "../ui/Photo";
 import { StatusPill } from "../ui/StatusPill";
+import { PublicToggle } from "../ui/PublicToggle";
 
 type Props = {
   conversationId: number;
@@ -167,11 +168,13 @@ export function BookingCard({ b, role, onDone }: { b: Booking; role: "musician" 
   const [counter, setCounter] = useState(false);
   const [price, setPrice] = useState(String(b.price));
   const [pending, start] = useTransition();
+  const [listPublic, setListPublic] = useState(b.public === 1);
   const router = useRouter();
   const { t, eur, d } = useI18n();
   const myTurn = b.last_action_by !== role;
   const open = b.status === "pending" || b.status === "countered";
   const past = b.event_date <= new Date().toISOString().slice(0, 10);
+  const upcoming = b.event_date >= cyDate(0); // tonight still counts for What's on
 
   const act = (action: string, extra?: Record<string, string>) => {
     const fd = new FormData();
@@ -197,6 +200,20 @@ export function BookingCard({ b, role, onDone }: { b: Booking; role: "musician" 
         <p className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-flame" /> {b.start_time}{b.end_time ? `–${b.end_time}` : ""} · {b.event_type}</p>
         <p className="flex items-center gap-1.5 truncate"><MapPin className="h-3.5 w-3.5 shrink-0 text-flame" /> <span className="truncate">{b.venue}</span></p>
       </div>
+      {role === "business" && ((open && myTurn) || (b.status === "confirmed" && upcoming)) && !counter && (
+        <PublicToggle
+          compact
+          checked={listPublic}
+          disabled={pending}
+          onChange={(v) => {
+            setListPublic(v);
+            if (b.status === "confirmed") act("visibility", { public: v ? "1" : "0" });
+          }}
+        />
+      )}
+      {role === "musician" && b.status === "confirmed" && upcoming && (
+        <p className="mt-3 text-[11px] text-dim">{b.public ? t.wo.listed : t.wo.hidden}</p>
+      )}
       {open && !myTurn && <p className="mt-3 text-[11px] text-dim">{role === "musician" ? t.msg.waitingVenue : t.msg.waitingMusician}</p>}
       {counter ? (
         <div className="mt-3 flex gap-2">
@@ -211,7 +228,7 @@ export function BookingCard({ b, role, onDone }: { b: Booking; role: "musician" 
         <div className="mt-3 flex flex-wrap gap-1.5">
           {open && myTurn && (
             <>
-              <button disabled={pending} onClick={() => act("accept")} className="btn btn-sm bg-lime text-ink hover:bg-lime/90"><Check className="h-3.5 w-3.5" /> {t.msg.accept}</button>
+              <button disabled={pending} onClick={() => act("accept", role === "business" ? { public: listPublic ? "1" : "0" } : undefined)} className="btn btn-sm bg-lime text-ink hover:bg-lime/90"><Check className="h-3.5 w-3.5" /> {t.msg.accept}</button>
               <button disabled={pending} onClick={() => setCounter(true)} className="btn-ghost btn-sm"><Repeat2 className="h-3.5 w-3.5" /> {t.msg.counter}</button>
               <button disabled={pending} onClick={() => act("decline")} className="btn-quiet btn-sm text-rose"><X className="h-3.5 w-3.5" /> {t.msg.decline}</button>
             </>

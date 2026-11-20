@@ -3,7 +3,7 @@ export const match = {
   metaDesc: ["Answer 4 quick questions and get musicians ranked for your event.", "Απάντησε σε 4 γρήγορες ερωτήσεις και δες τους μουσικούς που ταιριάζουν στην εκδήλωσή σου."],
   eyebrow: ["Smart match", "Έξυπνη αντιστοίχιση"],
   title: ["Find your perfect musician", "Βρες τον ιδανικό μουσικό"],
-  intro: ["Four quick questions. We'll rank every musician in Cyprus for your event.", "Τέσσερις γρήγορες ερωτήσεις. Θα κατατάξουμε κάθε μουσικό της Κύπρου για την εκδήλωσή σου."],
+  intro: ["Describe your event in one sentence — or answer four quick questions. We'll rank every musician in Cyprus for you.", "Περίγραψε την εκδήλωσή σου σε μία πρόταση — ή απάντησε σε τέσσερις γρήγορες ερωτήσεις. Θα κατατάξουμε κάθε μουσικό της Κύπρου για σένα."],
   step: [(i: number, n: number) => `Step ${i} of ${n}`, (i: number, n: number) => `Βήμα ${i} από ${n}`],
   q1: ["What's the occasion?", "Ποια είναι η περίσταση;"],
   q2: ["Where is it?", "Πού θα γίνει;"],
@@ -33,8 +33,8 @@ export const match = {
   seeAll: ["See all musicians", "Δες όλους τους μουσικούς"],
   how: ["How we score", "Πώς βαθμολογούμε"],
   howText: [
-    "Genres 40% · distance from your city 25% · budget 20% · event type 10% · reviews 5%. Musicians who are busy on your date go to the end.",
-    "Είδη 40% · απόσταση από την πόλη σου 25% · προϋπολογισμός 20% · τύπος εκδήλωσης 10% · κριτικές 5%. Όσοι δεν είναι διαθέσιμοι την ημερομηνία σου εμφανίζονται στο τέλος.",
+    "Genres 35% · distance from your city 25% · budget 20% · artist type 10% · event type 5% · reviews 5%. Musicians who are busy on your date go to the end.",
+    "Είδη 35% · απόσταση από την πόλη σου 25% · προϋπολογισμός 20% · τύπος καλλιτέχνη 10% · τύπος εκδήλωσης 5% · κριτικές 5%. Όσοι δεν είναι διαθέσιμοι την ημερομηνία σου εμφανίζονται στο τέλος.",
   ],
   r: {
     genres: [(g: string) => `Plays ${g}`, (g: string) => `Παίζει ${g}`],
@@ -47,5 +47,6 @@ export const match = {
     event: [(e: string) => `Plays ${e.toLowerCase()}`, (e: string) => `Εμφανίζεται σε: ${e.toLowerCase()}`],
     free: [(d: string) => `Free on ${d}`, (d: string) => `Διαθέσιμος/η ${d}`],
     rated: [(r: string) => `Rated ${r}★`, (r: string) => `Βαθμολογία ${r}★`],
+    type: [(x: string) => `${x} — as requested`, (x: string) => `${x} — όπως ζήτησες`],
   },
 } as const;

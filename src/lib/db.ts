@@ -155,6 +155,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   price INTEGER NOT NULL,
   notes TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','countered','confirmed','declined','cancelled','completed')),
+  public INTEGER NOT NULL DEFAULT 1,
   last_action_by TEXT NOT NULL DEFAULT 'business',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -270,6 +271,8 @@ export function db(): Database {
   // Old venue categories → new venue types
   for (const [from, to] of [["Hotel & Resort", "Hotel"], ["Bar & Lounge", "Bar"], ["Club", "Nightclub"], ["Private Organizer", "Other"]])
     conn.prepare("UPDATE businesses SET category = ? WHERE category = ?").run(to, from);
+  // What's on (v3): venue chooses whether a confirmed booking is listed publicly
+  if (!has("bookings", "public")) conn.exec("ALTER TABLE bookings ADD COLUMN public INTEGER NOT NULL DEFAULT 1");
   g.__soundcyDb = conn;
   const count = conn.prepare("SELECT COUNT(*) AS n FROM users").get() as { n: number };
   if (!count.n) {

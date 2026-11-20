@@ -62,7 +62,7 @@ const GENRE_HUES: [string, number][] = [
 
 const BUDGETS = [300, 500, 800, 1200, 2000];
 
-export type WizardInit = { event?: string; city?: string; genres: string[]; budget?: number; date?: string };
+export type WizardInit = { event?: string; city?: string; genres: string[]; budget?: number; date?: string; type?: string };
 
 export function MatchWizard({ init }: { init: WizardInit }) {
   const { t, L } = useI18n();
@@ -78,6 +78,7 @@ export function MatchWizard({ init }: { init: WizardInit }) {
     if (ans.genres.length) p.set("genres", ans.genres.join(","));
     if (ans.budget) p.set("budget", String(ans.budget));
     if (ans.date) p.set("date", ans.date);
+    if (ans.type) p.set("type", ans.type);
     p.set("go", "1");
     router.push(`/match?${p.toString()}`, { scroll: true });
   };

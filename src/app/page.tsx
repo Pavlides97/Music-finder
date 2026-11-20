@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { ArrowRight, CalendarCheck, Headphones, MessageCircle, Mic2, Search, Sparkles, Store, UserRoundPlus, Wallet } from "lucide-react";
+import { ArrowRight, CalendarCheck, CalendarHeart, Headphones, MessageCircle, Mic2, Search, Sparkles, Store, UserRoundPlus, Wallet } from "lucide-react";
 import { HeroSearch } from "@/components/home/HeroSearch";
 import { HeroScene } from "@/components/three/HeroScene";
 import { CyprusMap } from "@/components/home/CyprusMap";
 import { db } from "@/lib/db";
-import { GigCard, MusicianCard } from "@/components/cards";
+import { EventCard, GigCard, MusicianCard } from "@/components/cards";
 import { Tilt } from "@/components/ui/Tilt";
 import { Reveal } from "@/components/ui/Reveal";
-import { featuredMusicians, genreCounts, platformStats, upcomingGigs } from "@/lib/data";
+import { featuredMusicians, genreCounts, platformStats, upcomingGigs, whatsOn } from "@/lib/data";
 import { CATEGORY_TILES } from "@/lib/constants";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -17,6 +17,7 @@ export default async function Home() {
   const { t, L } = await getI18n();
   const featured = featuredMusicians(8);
   const gigs = upcomingGigs(3);
+  const shows = whatsOn({ days: 14 }).slice(0, 3);
   const stats = platformStats();
   const counts = Object.fromEntries(genreCounts().map((g) => [g.genre, g.n]));
   const byCity = Object.fromEntries(
@@ -118,6 +119,28 @@ export default async function Home() {
             </Reveal>
           ))}
         </div>
+      </section>
+
+      {/* ---------------- WHAT'S ON ---------------- */}
+      <section className="container-x pb-20">
+        <SectionHead eyebrow={t.wo.homeEyebrow} title={t.wo.homeTitle} href="/whats-on" cta={t.wo.homeCta} />
+        {shows.length ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {shows.map((e, i) => (
+              <Reveal key={e.id} delay={i * 90} className="h-full">
+                <EventCard e={e} />
+              </Reveal>
+            ))}
+          </div>
+        ) : (
+          <Reveal>
+            <Link href="/whats-on" className="card group flex flex-col items-start gap-4 p-6 transition hover:border-line-strong sm:flex-row sm:items-center">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-flame/30 bg-flame/10"><CalendarHeart className="h-6 w-6 text-flame" aria-hidden /></span>
+              <span className="flex-1 text-muted">{t.wo.homeEmpty}</span>
+              <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-fg">{t.wo.homeCta} <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden /></span>
+            </Link>
+          </Reveal>
+        )}
       </section>
 
       {/* ---------------- HOW IT WORKS ---------------- */}

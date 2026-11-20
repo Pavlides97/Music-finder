@@ -4,11 +4,12 @@ import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { CalendarCheck, X } from "lucide-react";
 import { requestBookingAction } from "@/app/actions";
-import { EVENT_TYPES } from "@/lib/constants";
+import { EVENT_TYPES, isPrivateEvent } from "@/lib/constants";
 import { isoDate } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/client";
 import { AvailabilityCalendar } from "./AvailabilityCalendar";
 import { FormMessage, SubmitButton } from "../ui/SubmitButton";
+import { PublicToggle } from "../ui/PublicToggle";
 
 export function BookingPanel({
   musician,
@@ -26,6 +27,8 @@ export function BookingPanel({
   const [open, setOpen] = useState(false);
   const { t, L, eur, dLong } = useI18n();
   const [date, setDate] = useState("");
+  const firstType = musician.event_types[0] ?? "Private parties";
+  const [listPublic, setListPublic] = useState(!isPrivateEvent(firstType));
   const [state, action] = useActionState(requestBookingAction, undefined);
 
   useEffect(() => {
@@ -100,7 +103,7 @@ export function BookingPanel({
                   </label>
                   <label className="col-span-2 block sm:col-span-1">
                     <span className="label">{t.common.eventType}</span>
-                    <select name="event_type" className="input" defaultValue={musician.event_types[0] ?? "Private parties"}>
+                    <select name="event_type" className="input" defaultValue={firstType} onChange={(e) => setListPublic(!isPrivateEvent(e.target.value))}>
                       {EVENT_TYPES.map((e) => <option key={e} value={e}>{L(e)}</option>)}
                     </select>
                   </label>
@@ -122,6 +125,7 @@ export function BookingPanel({
                   <span className="label">{t.booking.message}</span>
                   <textarea name="notes" rows={3} className="input" placeholder={t.booking.messagePh} />
                 </label>
+                <PublicToggle checked={listPublic} onChange={setListPublic} />
                 <FormMessage state={state} />
                 <SubmitButton className="btn-lg w-full" pendingText={t.booking.sending}>{t.booking.send}</SubmitButton>
                 <p className="text-center text-[11px] text-dim">{t.booking.noPayment}</p>

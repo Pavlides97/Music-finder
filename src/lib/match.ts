@@ -3,7 +3,7 @@ import { db } from "./db";
 import { searchMusicians, type Musician } from "./data";
 import { CITY_COORDS } from "./constants";
 
-export type MatchQuery = { event?: string; city?: string; genres: string[]; budget?: number; date?: string };
+export type MatchQuery = { event?: string; city?: string; genres: string[]; budget?: number; date?: string; type?: string };
 
 export type MatchReason =
   | { k: "genres"; genres: string[] }
@@ -15,7 +15,8 @@ export type MatchReason =
   | { k: "onRequest" }
   | { k: "event"; event: string }
   | { k: "free"; date: string }
-  | { k: "rated"; rating: number };
+  | { k: "rated"; rating: number }
+  | { k: "type"; type: string };
 
 export type MatchResult = { m: Musician; score: number; reasons: MatchReason[]; busy: boolean; overBudget: boolean };
 
@@ -33,7 +34,7 @@ export function km(a: string, b: string) {
 
 /**
  * Transparent, rule-based scoring (0–100):
- * genres 40 · location 25 · budget 20 · event type 10 · rating 5.
+ * genres 35 · location 25 · budget 20 · artist type 10 · event type 5 · rating 5.
  * Musicians already booked/blocked on the chosen date are moved to the end.
  */
 export function matchMusicians(q: MatchQuery, limit = 6): MatchResult[] {
@@ -53,12 +54,12 @@ export function matchMusicians(q: MatchQuery, limit = 6): MatchResult[] {
     const reasons: MatchReason[] = [];
     let score = 0;
 
-    // Genres (40)
+    // Genres (35)
     if (q.genres.length) {
       const hit = q.genres.filter((g) => m.genres.includes(g));
-      score += (hit.length / q.genres.length) * 40;
+      score += (hit.length / q.genres.length) * 35;
       if (hit.length) reasons.push({ k: "genres", genres: hit });
-    } else score += 24;
+    } else score += 21;
 
     // Location (25)
     if (!q.city || q.city === "Island-wide") score += 20;
@@ -93,13 +94,20 @@ export function matchMusicians(q: MatchQuery, limit = 6): MatchResult[] {
       score += Math.max(0, 8 - ((m.price_from - q.budget) / q.budget) * 16);
     }
 
-    // Event type (10) — unknown counts as neutral
-    if (!q.event) score += 7;
-    else if (m.event_types.includes(q.event)) {
+    // Artist type (10) — e.g. band, DJ, singer
+    if (!q.type) score += 7;
+    else if (m.performer_type === q.type) {
       score += 10;
+      reasons.push({ k: "type", type: q.type });
+    } else score += 2;
+
+    // Event type (5) — unknown counts as neutral
+    if (!q.event) score += 3.5;
+    else if (m.event_types.includes(q.event)) {
+      score += 5;
       reasons.push({ k: "event", event: q.event });
-    } else if (!m.event_types.length) score += 6;
-    else score += 2;
+    } else if (!m.event_types.length) score += 3;
+    else score += 1;
 
     // Rating (5) — neutral for new profiles
     if (m.review_count) {

@@ -16,6 +16,7 @@ function useLinks() {
   return [
     { href: "/musicians", label: t.common.findMusicians },
     { href: "/match", label: t.nav.match, highlight: true },
+    { href: "/whats-on", label: t.wo.nav },
     { href: "/gigs", label: t.common.findGigs },
     { href: "/venues", label: t.common.venues },
   ];

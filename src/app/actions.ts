@@ -14,12 +14,20 @@ import {
   getGig,
   getMusicianById,
 } from "@/lib/data";
-import { BUSINESS_CATEGORIES, COUNTRIES, EVENT_TYPES, GENRES, LOCATIONS, PERFORMER_TYPES } from "@/lib/constants";
+import { BUSINESS_CATEGORIES, COUNTRIES, EVENT_TYPES, GENRES, LOCATIONS, PERFORMER_TYPES, isPrivateEvent } from "@/lib/constants";
 import { euro, fmtDate, isoDate, slugify } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n/server";
 
 /** Automatic chat message, rendered in each reader's language (see i18n sys). */
 const sys = (k: string, p: Record<string, unknown> = {}) => JSON.stringify({ k, p });
+
+/** "Show on What's on": explicit form value if sent, otherwise public unless the event type is private. */
+const publicFlag = (fd: FormData, eventType: string) => {
+  const v = fd.getAll("public");
+  if (v.includes("1") || v.includes("on")) return 1;
+  if (v.includes("0")) return 0;
+  return isPrivateEvent(eventType) ? 0 : 1;
+};
 
 export type FormState = { error?: string; ok?: string } | undefined;
 
@@ -313,10 +321,10 @@ export async function setApplicationStatusAction(fd: FormData) {
       const bookingId = Number(
         db()
           .prepare(
-            `INSERT INTO bookings (musician_id, business_id, gig_id, event_date, start_time, end_time, event_type, venue, price, notes, status, last_action_by)
-             VALUES (?,?,?,?,?,?,?,?,?,?, 'confirmed', 'business')`,
+            `INSERT INTO bookings (musician_id, business_id, gig_id, event_date, start_time, end_time, event_type, venue, price, notes, status, last_action_by, public)
+             VALUES (?,?,?,?,?,?,?,?,?,?, 'confirmed', 'business', ?)`,
           )
-          .run(app.musician_id, gig.business_id, gig.id, gig.event_date, gig.start_time, gig.end_time, gig.event_type, gig.venue || gig.business_name, price, gig.title)
+          .run(app.musician_id, gig.business_id, gig.id, gig.event_date, gig.start_time, gig.end_time, gig.event_type, gig.venue || gig.business_name, price, gig.title, publicFlag(fd, gig.event_type))
           .lastInsertRowid,
       );
       db().prepare("UPDATE gigs SET status = 'filled' WHERE id = ?").run(gig.id);
@@ -355,10 +363,10 @@ export async function requestBookingAction(_: FormState, fd: FormData): Promise<
     const bookingId = Number(
       db()
         .prepare(
-          `INSERT INTO bookings (musician_id, business_id, event_date, start_time, end_time, event_type, venue, price, notes, status, last_action_by)
-           VALUES (?,?,?,?,?,?,?,?,?, 'pending', 'business')`,
+          `INSERT INTO bookings (musician_id, business_id, event_date, start_time, end_time, event_type, venue, price, notes, status, last_action_by, public)
+           VALUES (?,?,?,?,?,?,?,?,?, 'pending', 'business', ?)`,
         )
-        .run(m.id, v.business.id, date, start, isTime(str(fd, "end_time")) ? str(fd, "end_time") : null, eventType, str(fd, "venue", 200) || v.business.name, price, notes)
+        .run(m.id, v.business.id, date, start, isTime(str(fd, "end_time")) ? str(fd, "end_time") : null, eventType, str(fd, "venue", 200) || v.business.name, price, notes, fd.get("public") === "1" ? 1 : 0)
         .lastInsertRowid,
     );
     const cid = ensureConversation(m.id, v.business.id);
@@ -384,7 +392,10 @@ export async function bookingAction(fd: FormData) {
     db().prepare("UPDATE bookings SET status = ?, price = ?, last_action_by = ?, updated_at = datetime('now') WHERE id = ?").run(status, price, v.role, b.id);
 
   tx(() => {
-    if (action === "accept" && open && theirTurn) {
+    if (action === "visibility" && v.role === "business" && b.status !== "declined" && b.status !== "cancelled") {
+      db().prepare("UPDATE bookings SET public = ?, updated_at = datetime('now') WHERE id = ?").run(fd.get("public") === "1" ? 1 : 0, b.id);
+    } else if (action === "accept" && open && theirTurn) {
+      if (v.role === "business" && fd.has("public")) db().prepare("UPDATE bookings SET public = ? WHERE id = ?").run(fd.get("public") === "1" ? 1 : 0, b.id);
       set("confirmed");
       addMessage(cid, null, sys("confirmed", { price: b.price, date: b.event_date, time: b.start_time }), "booking", b.id);
     } else if (action === "decline" && open) {
@@ -404,6 +415,7 @@ export async function bookingAction(fd: FormData) {
     }
   });
   revalidatePath("/messages");
+  revalidatePath("/whats-on");
   revalidatePath("/dashboard", "layout");
 }
 

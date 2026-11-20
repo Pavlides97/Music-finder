@@ -100,3 +100,14 @@ export function parseList(v: unknown): string[] {
     return [];
   }
 }
+
+/** Calendar date in Cyprus (Europe/Nicosia) as YYYY-MM-DD, shifted by `offsetDays`. */
+export function cyDate(offsetDays = 0) {
+  const base = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Nicosia", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const d = new Date(`${base}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + offsetDays);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Day of week (0 = Sunday) of a YYYY-MM-DD date. */
+export const weekdayOf = (iso: string) => new Date(`${iso}T12:00:00Z`).getUTCDay();

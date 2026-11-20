@@ -5,6 +5,7 @@ import { CalendarDays, CheckCircle2, Clock, Eye, MapPin, PlusCircle, Star, X } f
 import { requireViewer } from "@/lib/auth";
 import { applicationsForGig, gigsForBusiness } from "@/lib/data";
 import { isoDate } from "@/lib/utils";
+import { isPrivateEvent } from "@/lib/constants";
 import { getI18n } from "@/lib/i18n/server";
 import { Empty, PageHead } from "@/components/dashboard/ui";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -88,7 +89,7 @@ export default async function MyGigsPage({ searchParams }: { searchParams: Promi
                             {g.status === "open" && a.status !== "accepted" && a.status !== "declined" && (
                               <>
                                 {a.status !== "shortlisted" && <AppBtn id={a.id} status="shortlisted" cls="btn-ghost btn-sm"><Star className="h-3.5 w-3.5" /> {t.dash.shortlist}</AppBtn>}
-                                <AppBtn id={a.id} status="accepted" cls="btn btn-sm bg-lime text-ink hover:bg-lime/90"><CheckCircle2 className="h-3.5 w-3.5" /> {t.dash.hire}</AppBtn>
+                                <AppBtn id={a.id} status="accepted" cls="btn btn-sm bg-lime text-ink hover:bg-lime/90" listDefault={!isPrivateEvent(g.event_type)} listLabel={t.wo.listToggle}><CheckCircle2 className="h-3.5 w-3.5" /> {t.dash.hire}</AppBtn>
                                 <AppBtn id={a.id} status="declined" cls="btn-quiet btn-sm text-rose" label={t.dash.declineApp}><X className="h-3.5 w-3.5" /></AppBtn>
                               </>
                             )}
@@ -107,11 +108,18 @@ export default async function MyGigsPage({ searchParams }: { searchParams: Promi
   );
 }
 
-function AppBtn({ id, status, cls, label, children }: { id: number; status: string; cls: string; label?: string; children: React.ReactNode }) {
+function AppBtn({ id, status, cls, label, listDefault, listLabel, children }: { id: number; status: string; cls: string; label?: string; listDefault?: boolean; listLabel?: string; children: React.ReactNode }) {
   return (
-    <form action={setApplicationStatusAction}>
+    <form action={setApplicationStatusAction} className={listLabel ? "flex flex-wrap items-center gap-2" : undefined}>
       <input type="hidden" name="application_id" value={id} />
       <input type="hidden" name="status" value={status} />
+      {listLabel && (
+        <label className="order-last inline-flex min-h-11 cursor-pointer items-center gap-2 text-xs text-muted sm:order-none">
+          <input type="checkbox" name="public" value="1" defaultChecked={listDefault} className="h-4 w-4 accent-[#ff7a1a]" />
+          <input type="hidden" name="public" value="0" />
+          {listLabel}
+        </label>
+      )}
       <button className={cls} data-status={status} aria-label={label}>{children}</button>
     </form>
   );

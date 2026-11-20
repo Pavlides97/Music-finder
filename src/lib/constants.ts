@@ -60,6 +60,10 @@ export const EVENT_TYPES = [
   "Christenings",
 ] as const;
 
+/** Event types that are private by nature — "Show on What's on" starts unticked for these. */
+export const PRIVATE_EVENT_TYPES = ["Weddings", "Private parties", "Christenings"] as const;
+export const isPrivateEvent = (t: string) => (PRIVATE_EVENT_TYPES as readonly string[]).includes(t);
+
 /** Types of venue / business. */
 export const BUSINESS_CATEGORIES = [
   "Restaurant",

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { BadgeCheck, CalendarDays, Clock, Euro, MapPin, Users, Flame, Music2 } from "lucide-react";
-import type { Business, Gig, Musician } from "@/lib/data";
+import type { Business, Gig, Musician, WhatsOnEvent } from "@/lib/data";
 import { daysUntil } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/client";
 import { Photo } from "./ui/Photo";
@@ -150,6 +150,53 @@ export function VenueCard({ b }: { b: Business }) {
         </div>
       </div>
     </Link>
+    </Tilt>
+  );
+}
+
+/** A confirmed public show — links to both the artist and the venue. */
+export function EventCard({ e, showDate = true }: { e: WhatsOnEvent; showDate?: boolean }) {
+  const { t, L, d } = useI18n();
+  const day = new Date(`${e.event_date}T12:00:00`);
+  return (
+    <Tilt className="h-full rounded-2xl" max={5}>
+      <article className="elevated relative flex h-full flex-col overflow-hidden rounded-2xl border border-line p-4 transition duration-300 hover:border-line-strong">
+        <div className="flex items-start gap-3">
+          {showDate && (
+            <div className="flex w-14 shrink-0 flex-col items-center rounded-xl border border-flame/30 bg-flame/10 py-1.5 text-center">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-flame">{d(e.event_date, { weekday: "short" })}</span>
+              <span className="display text-2xl font-extrabold leading-none">{day.getDate()}</span>
+              <span className="text-[10px] uppercase text-muted">{d(e.event_date, { month: "short" })}</span>
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-lime">
+              <Clock className="h-3.5 w-3.5" aria-hidden /> {e.start_time}{e.end_time ? `–${e.end_time}` : ""}
+            </p>
+            <h3 className="display mt-1 text-lg font-bold leading-tight">
+              <Link href={`/musicians/${e.musician_slug}`} className="hover:text-flame">{e.musician_name}</Link>
+            </h3>
+            <p className="mt-0.5 truncate text-sm text-muted">
+              {t.wo.at}{" "}
+              <Link href={`/venues/${e.venue_slug}`} className="font-medium text-fg/90 hover:text-flame">{e.venue_name}</Link>
+            </p>
+            <p className="mt-1 flex items-center gap-1 text-xs text-muted"><MapPin className="h-3.5 w-3.5 text-flame" aria-hidden /> {L(e.city)} · {L(e.venue_category)}</p>
+          </div>
+        </div>
+        {e.genres.length > 0 && (
+          <ul className="mt-3 flex flex-wrap gap-1.5" aria-label={t.common.genre}>
+            {e.genres.slice(0, 4).map((g) => <li key={g} className="chip">{L(g)}</li>)}
+          </ul>
+        )}
+        <div className="mt-auto flex gap-2 pt-4">
+          <Link href={`/musicians/${e.musician_slug}`} className="btn-ghost btn-sm flex-1 justify-center min-h-10" aria-label={`${t.wo.viewArtist}: ${e.musician_name}`}>
+            <Music2 className="h-3.5 w-3.5" aria-hidden /> {t.wo.viewArtist}
+          </Link>
+          <Link href={`/venues/${e.venue_slug}`} className="btn-ghost btn-sm flex-1 justify-center min-h-10" aria-label={`${t.wo.viewVenue}: ${e.venue_name}`}>
+            <MapPin className="h-3.5 w-3.5" aria-hidden /> {t.wo.viewVenue}
+          </Link>
+        </div>
+      </article>
     </Tilt>
   );
 }

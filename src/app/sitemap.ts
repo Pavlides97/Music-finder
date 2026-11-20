@@ -16,6 +16,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/", 1, "daily"),
     page("/musicians", 0.9, "daily"),
     page("/match", 0.8),
+    page("/whats-on", 0.9, "daily"),
+    page("/about", 0.6),
     page("/gigs", 0.9, "daily"),
     page("/venues", 0.7),
     ...searchMusicians({}, 1000).map((m) => page(`/musicians/${m.slug}`, 0.8)),

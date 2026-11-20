@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "./db";
-import { isoDate, parseList } from "./utils";
+import { cyDate, isoDate, parseList } from "./utils";
 import { englishValuesFor } from "./i18n/core";
 
 /* ---------- Types ---------- */
@@ -116,6 +116,7 @@ export type Booking = {
   notes: string;
   status: "pending" | "countered" | "confirmed" | "declined" | "cancelled" | "completed";
   last_action_by: "musician" | "business";
+  public: number;
   created_at: string;
   updated_at: string;
   musician_name: string;
@@ -303,6 +304,68 @@ export function platformStats() {
     openGigs: n(`SELECT COUNT(*) n FROM gigs WHERE status='open' AND deadline >= '${today()}'`),
     bookings: n("SELECT COUNT(*) n FROM bookings WHERE status IN ('confirmed','completed')"),
   };
+}
+
+/** Real numbers for the About page — everything is counted from the database. */
+export function aboutStats() {
+  const d = db();
+  const n = (sql: string, ...p: string[]) => Number((d.prepare(sql).get(...p) as { n: number }).n);
+  return {
+    ...platformStats(),
+    cities: n("SELECT COUNT(DISTINCT location) n FROM musicians WHERE location != 'Island-wide'"),
+    genres: n("SELECT COUNT(DISTINCT j.value) n FROM musicians m, json_each(m.genres) j"),
+    lookingVenues: n("SELECT COUNT(*) n FROM businesses WHERE looking = 1"),
+    upcomingShows: n("SELECT COUNT(*) n FROM bookings WHERE status = 'confirmed' AND public = 1 AND event_date >= ?", cyDate(0)),
+  };
+}
+
+/* ---------- What's on ---------- */
+export type WhatsOnEvent = {
+  id: number;
+  event_date: string;
+  start_time: string;
+  end_time: string | null;
+  musician_name: string;
+  musician_slug: string;
+  musician_avatar: string | null;
+  musician_type: string;
+  genres: string[];
+  venue_name: string;
+  venue_slug: string;
+  venue_logo: string | null;
+  venue_category: string;
+  city: string;
+};
+
+/**
+ * Upcoming confirmed bookings the venue chose to list publicly.
+ * Only the venue's public name and city are shown — never the booking's private address or notes.
+ */
+/** Where the show happens: the gig's town when hired from a gig, otherwise the venue's own city. */
+const CITY_SQL = "CASE WHEN g.location IS NOT NULL AND g.location != 'Island-wide' THEN g.location ELSE b.location END";
+
+export function whatsOn(f: { city?: string; genre?: string; days?: number } = {}): WhatsOnEvent[] {
+  const where = ["bk.status = 'confirmed'", "bk.public = 1", "bk.event_date >= ?", "bk.event_date <= ?"];
+  const params: string[] = [cyDate(0), cyDate(f.days ?? 31)];
+  if (f.city) {
+    where.push(`${CITY_SQL} = ?`);
+    params.push(f.city);
+  }
+  if (f.genre) {
+    where.push("EXISTS (SELECT 1 FROM json_each(m.genres) WHERE value = ?)");
+    params.push(f.genre);
+  }
+  return db()
+    .prepare(
+      `SELECT bk.id, bk.event_date, bk.start_time, bk.end_time,
+        m.name AS musician_name, m.slug AS musician_slug, m.avatar AS musician_avatar, m.performer_type AS musician_type, m.genres,
+        b.name AS venue_name, b.slug AS venue_slug, b.logo AS venue_logo, b.category AS venue_category, ${CITY_SQL} AS city
+       FROM bookings bk JOIN musicians m ON m.id = bk.musician_id JOIN businesses b ON b.id = bk.business_id
+       LEFT JOIN gigs g ON g.id = bk.gig_id
+       WHERE ${where.join(" AND ")} ORDER BY bk.event_date, bk.start_time`,
+    )
+    .all(...params)
+    .map((r) => ({ ...(r as unknown as WhatsOnEvent), genres: parseList(r.genres) }));
 }
 
 /* ---------- Businesses ---------- */

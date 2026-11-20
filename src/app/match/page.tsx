@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CalendarCheck, Check, Info, MapPin, RotateCcw, Sparkles, TriangleAlert } from "lucide-react";
+import { ArrowRight, CalendarCheck, Check, Info, MapPin, MessageSquareText, RotateCcw, Sparkles, TriangleAlert, X } from "lucide-react";
 import { matchMusicians, type MatchReason } from "@/lib/match";
 import { getI18n } from "@/lib/i18n/server";
 import type { I18n } from "@/lib/i18n";
 import { MatchWizard } from "@/components/match/MatchWizard";
+import { DescribeEvent } from "@/components/match/DescribeEvent";
+import { aiAvailable } from "@/lib/eventAI";
 import { Photo } from "@/components/ui/Photo";
 import { Tilt } from "@/components/ui/Tilt";
-import { EVENT_TYPES, GENRES, LOCATIONS } from "@/lib/constants";
+import { EVENT_TYPES, GENRES, LOCATIONS, PERFORMER_TYPES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -31,17 +33,30 @@ export default async function MatchPage({ searchParams }: { searchParams: SP }) 
     genres: (sp.genres ?? "").split(",").filter((g) => GENRES.includes(g as never)),
     budget: Number(sp.budget) > 0 ? Math.round(Number(sp.budget)) : undefined,
     date: sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : undefined,
+    type: PERFORMER_TYPES.includes(sp.type as never) ? sp.type : undefined,
   };
+  const fromAI = sp.ai === "1";
   const showResults = sp.go === "1";
   const results = showResults ? matchMusicians(init, 6) : [];
 
+  // Each chip knows how to remove itself (link to the same search without it).
+  const without = (key: string, genre?: string) => {
+    const p = new URLSearchParams(Object.entries(sp).filter(([, v]) => v) as [string, string][]);
+    if (genre) {
+      const rest = init.genres.filter((g) => g !== genre);
+      if (rest.length) p.set("genres", rest.join(","));
+      else p.delete("genres");
+    } else p.delete(key);
+    return `/match?${p.toString()}`;
+  };
   const chips = [
-    init.event && L(init.event),
-    init.city && (init.city === "Island-wide" ? t.match.anywhere : L(init.city)),
-    ...init.genres.map(L),
-    init.date && d(init.date),
-    init.budget && `≤ ${eur(init.budget)}`,
-  ].filter(Boolean) as string[];
+    init.event && { key: "event", label: L(init.event), href: without("event") },
+    init.type && { key: "type", label: L(init.type), href: without("type") },
+    init.city && { key: "city", label: init.city === "Island-wide" ? t.match.anywhere : L(init.city), href: without("city") },
+    ...init.genres.map((g) => ({ key: `g-${g}`, label: L(g), href: without("genres", g) })),
+    init.date && { key: "date", label: d(init.date), href: without("date") },
+    init.budget && { key: "budget", label: `≤ ${eur(init.budget)}`, href: without("budget") },
+  ].filter(Boolean) as { key: string; label: string; href: string }[];
 
   return (
     <div className="relative isolate overflow-hidden">
@@ -58,7 +73,13 @@ export default async function MatchPage({ searchParams }: { searchParams: SP }) 
               <h1 className="display mt-3 text-4xl font-extrabold sm:text-6xl">{t.match.title}</h1>
               <p className="mt-4 text-lg text-muted">{t.match.intro}</p>
             </div>
-            <MatchWizard init={init} />
+            <DescribeEvent available={aiAvailable()} />
+            <div className="mx-auto my-8 flex max-w-3xl items-center gap-4 text-xs font-semibold uppercase tracking-wider text-dim" aria-hidden>
+              <span className="h-px flex-1 bg-line" /> {t.ai.or} <span className="h-px flex-1 bg-line" />
+            </div>
+            <div id="quick-questions" className="scroll-mt-24">
+              <MatchWizard init={init} />
+            </div>
           </>
         ) : (
           <>
@@ -67,9 +88,21 @@ export default async function MatchPage({ searchParams }: { searchParams: SP }) 
                 <p className="eyebrow inline-flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5" /> {t.match.resultsEyebrow}</p>
                 <h1 className="display mt-2 text-4xl font-extrabold sm:text-5xl">{t.match.resultsTitle(results.length)}</h1>
                 {chips.length > 0 && (
-                  <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-muted">
-                    <span>{t.match.summary}:</span>
-                    {chips.map((c) => <span key={c} className="chip border-flame/30 text-fg">{c}</span>)}
+                  <div className="mt-4">
+                    <p className="flex items-center gap-1.5 text-sm text-muted">
+                      {fromAI ? <><MessageSquareText className="h-4 w-4 text-flame" aria-hidden /> <strong className="text-fg">{t.ai.understood}</strong> · {t.ai.fromText}</> : <>{t.match.summary}:</>}
+                    </p>
+                    <ul className="mt-2 flex flex-wrap items-center gap-2">
+                      {chips.map((c) => (
+                        <li key={c.key} className="chip border-flame/30 py-0.5 pl-3 pr-1 text-sm text-fg">
+                          {c.label}
+                          <Link href={c.href} scroll={false} className="grid h-8 w-8 place-items-center rounded-full text-muted hover:bg-white/10 hover:text-fg" aria-label={t.ai.remove(c.label)}>
+                            <X className="h-3.5 w-3.5" aria-hidden />
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    {fromAI && <p className="mt-2 text-xs text-dim">{t.ai.edit}</p>}
                   </div>
                 )}
               </div>
@@ -120,7 +153,7 @@ export default async function MatchPage({ searchParams }: { searchParams: SP }) 
             </div>
 
             <div className="mt-10 flex flex-col items-start justify-between gap-4 rounded-2xl border border-line bg-surface/60 p-5 text-sm text-muted sm:flex-row sm:items-center">
-              <p className="flex items-start gap-2"><Info className="mt-0.5 h-4 w-4 shrink-0 text-flame" /> <span><strong className="text-fg">{t.match.how}:</strong> {t.match.howText}</span></p>
+              <p className="flex items-start gap-2"><Info className="mt-0.5 h-4 w-4 shrink-0 text-flame" /> <span><strong className="text-fg">{t.match.how}:</strong> {t.match.howText}{fromAI && <> {t.ai.powered}</>}</span></p>
               <Link href="/musicians" className="btn-ghost btn-sm shrink-0">{t.match.seeAll} <ArrowRight className="h-4 w-4" /></Link>
             </div>
           </>
@@ -152,6 +185,8 @@ function reasonText(r: MatchReason, { t, L, d }: I18n) {
       return t.match.r.free(d(r.date));
     case "rated":
       return t.match.r.rated(r.rating.toFixed(1));
+    case "type":
+      return t.match.r.type(L(r.type));
   }
 }
 
