@@ -16,6 +16,10 @@ import {
 } from "@/lib/data";
 import { BUSINESS_CATEGORIES, EVENT_TYPES, GENRES, LOCATIONS, PERFORMER_TYPES } from "@/lib/constants";
 import { euro, fmtDate, isoDate, slugify } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n/server";
+
+/** Automatic chat message, rendered in each reader's language (see i18n sys). */
+const sys = (k: string, p: Record<string, unknown> = {}) => JSON.stringify({ k, p });
 
 export type FormState = { error?: string; ok?: string } | undefined;
 
@@ -56,7 +60,7 @@ export async function loginAction(_: FormState, fd: FormData): Promise<FormState
   const email = str(fd, "email", 200).toLowerCase();
   const password = str(fd, "password", 200);
   const row = db().prepare("SELECT id, password_hash FROM users WHERE email = ?").get(email) as { id: number; password_hash: string } | undefined;
-  if (!row || !verifyPassword(password, row.password_hash)) return { error: "That email and password don't match. Try again." };
+  if (!row || !verifyPassword(password, row.password_hash)) return { error: (await getI18n()).t.errors.badLogin };
   await createSession(row.id);
   redirect(safeNext(str(fd, "next")));
 }
@@ -76,10 +80,11 @@ export async function signupAction(_: FormState, fd: FormData): Promise<FormStat
   const email = str(fd, "email", 200).toLowerCase();
   const password = str(fd, "password", 200);
   const location = oneOf(str(fd, "location"), LOCATIONS, "Nicosia");
-  if (name.length < 2) return { error: role === "musician" ? "Please enter your artist or band name." : "Please enter your business name." };
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Please enter a valid email address." };
-  if (password.length < 8) return { error: "Password must be at least 8 characters." };
-  if (db().prepare("SELECT 1 FROM users WHERE email = ?").get(email)) return { error: "An account with this email already exists. Try logging in." };
+  const { t } = await getI18n();
+  if (name.length < 2) return { error: role === "musician" ? t.errors.nameArtist : t.errors.nameBusiness };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: t.errors.email };
+  if (password.length < 8) return { error: t.errors.password };
+  if (db().prepare("SELECT 1 FROM users WHERE email = ?").get(email)) return { error: t.errors.exists };
 
   const userId = tx(() => {
     const uid = Number(db().prepare("INSERT INTO users (email, password_hash, role, name) VALUES (?,?,?,?)").run(email, hashPassword(password), role, name).lastInsertRowid);
@@ -88,7 +93,7 @@ export async function signupAction(_: FormState, fd: FormData): Promise<FormStat
       const genres = list(fd, "genres", GENRES);
       db()
         .prepare("INSERT INTO musicians (user_id, slug, name, performer_type, location, genres, tagline, public_email) VALUES (?,?,?,?,?,?,?,?)")
-        .run(uid, uniqueSlug("musicians", name), name, type, location, JSON.stringify(genres.length ? genres : ["Pop"]), `${type} based in ${location}`, email);
+        .run(uid, uniqueSlug("musicians", name), name, type, location, JSON.stringify(genres.length ? genres : ["Pop"]), "", email);
     } else {
       const category = oneOf(str(fd, "category"), BUSINESS_CATEGORIES, "Restaurant");
       db()
@@ -110,9 +115,10 @@ export async function logoutAction() {
 
 export async function saveMusicianProfile(_: FormState, fd: FormData): Promise<FormState> {
   const v = await requireViewer();
-  if (v.role !== "musician") return { error: "Only musicians can edit this profile." };
+  const { t } = await getI18n();
+  if (v.role !== "musician") return { error: t.errors.onlyMusicians };
   const name = str(fd, "name", 120);
-  if (name.length < 2) return { error: "Name is required." };
+  if (name.length < 2) return { error: t.errors.nameRequired };
   const tracks = lines(fd, "tracks")
     .map((l) => {
       const [title, url, duration] = l.split("|").map((s) => s.trim());
@@ -157,14 +163,15 @@ export async function saveMusicianProfile(_: FormState, fd: FormData): Promise<F
     );
   db().prepare("UPDATE users SET name = ? WHERE id = ?").run(name, v.user.id);
   revalidatePath("/", "layout");
-  return { ok: "Profile saved. Looking great!" };
+  return { ok: t.errors.profileSaved };
 }
 
 export async function saveBusinessProfile(_: FormState, fd: FormData): Promise<FormState> {
   const v = await requireViewer();
-  if (v.role !== "business") return { error: "Only businesses can edit this profile." };
+  const { t } = await getI18n();
+  if (v.role !== "business") return { error: t.errors.onlyBusinesses };
   const name = str(fd, "name", 120);
-  if (name.length < 2) return { error: "Business name is required." };
+  if (name.length < 2) return { error: t.errors.businessNameRequired };
   db()
     .prepare(
       `UPDATE businesses SET name=?, slug=?, category=?, location=?, address=?, description=?, music_wanted=?, budget_min=?, budget_max=?, capacity=?,
@@ -190,28 +197,29 @@ export async function saveBusinessProfile(_: FormState, fd: FormData): Promise<F
     );
   db().prepare("UPDATE users SET name = ? WHERE id = ?").run(name, v.user.id);
   revalidatePath("/", "layout");
-  return { ok: "Profile saved." };
+  return { ok: t.errors.saved };
 }
 
 /* ----------------------------- Gigs ----------------------------- */
 
 export async function createGigAction(_: FormState, fd: FormData): Promise<FormState> {
   const v = await requireViewer("/dashboard/gigs/new");
-  if (v.role !== "business") return { error: "Only venues and organisers can post gigs." };
+  const { t } = await getI18n();
+  if (v.role !== "business") return { error: t.errors.onlyVenuesPost };
   const title = str(fd, "title", 140);
   const date = str(fd, "event_date");
   const deadline = str(fd, "deadline") || date;
   const start = str(fd, "start_time");
   const today = isoDate(new Date());
-  if (title.length < 4) return { error: "Give your gig a descriptive title." };
-  if (!isDate(date) || date < today) return { error: "Choose an event date in the future." };
-  if (!isDate(deadline) || deadline > date || deadline < today) return { error: "The application deadline must be between today and the event date." };
-  if (!isTime(start)) return { error: "Please add a start time." };
+  if (title.length < 4) return { error: t.errors.gigTitle };
+  if (!isDate(date) || date < today) return { error: t.errors.futureDate };
+  if (!isDate(deadline) || deadline > date || deadline < today) return { error: t.errors.deadline };
+  if (!isTime(start)) return { error: t.errors.startTime };
   const genres = list(fd, "genres", GENRES);
-  if (!genres.length) return { error: "Pick at least one genre." };
+  if (!genres.length) return { error: t.errors.genre };
   const bmin = num(fd, "budget_min");
   const bmax = num(fd, "budget_max");
-  if (bmin && bmax && bmin > bmax) return { error: "Minimum budget can't be higher than maximum." };
+  if (bmin && bmax && bmin > bmax) return { error: t.errors.budgetOrder };
   const id = db()
     .prepare(
       `INSERT INTO gigs (business_id, title, event_date, start_time, end_time, location, venue, genres, performer_type, event_type, budget_min, budget_max, description, deadline, urgent)
@@ -251,11 +259,12 @@ export async function setGigStatusAction(fd: FormData) {
 export async function applyToGigAction(_: FormState, fd: FormData): Promise<FormState> {
   const gigId = Number(fd.get("gig_id"));
   const v = await requireViewer(`/gigs/${gigId}`);
-  if (v.role !== "musician") return { error: "Only musician accounts can apply to gigs." };
+  const { t } = await getI18n();
+  if (v.role !== "musician") return { error: t.errors.onlyMusiciansApply };
   const gig = getGig(gigId);
-  if (!gig || gig.status !== "open") return { error: "This gig is no longer accepting applications." };
+  if (!gig || gig.status !== "open") return { error: t.errors.gigClosed };
   const message = str(fd, "message", 1500);
-  if (message.length < 10) return { error: "Add a short note to the organiser (at least a sentence)." };
+  if (message.length < 10) return { error: t.errors.shortNote };
   const quote = num(fd, "quote");
   db()
     .prepare(
@@ -264,10 +273,11 @@ export async function applyToGigAction(_: FormState, fd: FormData): Promise<Form
     )
     .run(gig.id, v.musician.id, message, quote);
   const cid = ensureConversation(v.musician.id, gig.business_id);
-  addMessage(cid, v.user.id, `Applied to “${gig.title}” (${fmtDate(gig.event_date)})${quote ? ` with a quote of ${euro(quote)}` : ""}.\n\n${message}`);
+  addMessage(cid, null, sys("applied", { title: gig.title, date: gig.event_date, quote }), "system");
+  addMessage(cid, v.user.id, message);
   revalidatePath(`/gigs/${gig.id}`);
   revalidatePath("/dashboard", "layout");
-  return { ok: "Application sent! The organiser will be notified and can message you directly." };
+  return { ok: t.errors.applied };
 }
 
 export async function withdrawApplicationAction(fd: FormData) {
@@ -300,11 +310,11 @@ export async function setApplicationStatusAction(fd: FormData) {
           .lastInsertRowid,
       );
       db().prepare("UPDATE gigs SET status = 'filled' WHERE id = ?").run(gig.id);
-      addMessage(cid, null, `🎉 You're hired for “${gig.title}” on ${fmtDate(gig.event_date)} at ${euro(price)}. Booking confirmed.`, "booking", bookingId);
+      addMessage(cid, null, sys("hired", { title: gig.title, date: gig.event_date, price }), "booking", bookingId);
     } else if (status === "shortlisted") {
-      addMessage(cid, null, `⭐ ${gig.business_name} shortlisted your application for “${gig.title}”.`, "system");
+      addMessage(cid, null, sys("shortlisted", { venue: gig.business_name, title: gig.title }), "system");
     } else if (status === "declined") {
-      addMessage(cid, null, `Your application for “${gig.title}” wasn't selected this time. Keep going — new gigs are posted every day.`, "system");
+      addMessage(cid, null, sys("notSelected", { title: gig.title }), "system");
     }
   });
   revalidatePath("/dashboard", "layout");
@@ -316,18 +326,19 @@ export async function requestBookingAction(_: FormState, fd: FormData): Promise<
   const musicianId = Number(fd.get("musician_id"));
   const m = getMusicianById(musicianId);
   const v = await requireViewer(m ? `/musicians/${m.slug}` : "/musicians");
-  if (!m) return { error: "Musician not found." };
-  if (v.role !== "business") return { error: "Booking requests are sent from venue / organiser accounts. Create one for free to book." };
+  const { t, d } = await getI18n();
+  if (!m) return { error: t.errors.musicianNotFound };
+  if (v.role !== "business") return { error: t.errors.venuesBook };
   const date = str(fd, "event_date");
   const start = str(fd, "start_time");
   const price = num(fd, "price");
-  if (!isDate(date) || date < isoDate(new Date())) return { error: "Please choose a future date." };
-  if (!isTime(start)) return { error: "Please choose a start time." };
-  if (!price) return { error: "Please enter your offer in euros." };
+  if (!isDate(date) || date < isoDate(new Date())) return { error: t.errors.chooseFuture };
+  if (!isTime(start)) return { error: t.errors.chooseStart };
+  if (!price) return { error: t.errors.enterOffer };
   const busy = db()
     .prepare("SELECT 1 FROM unavailable_dates WHERE musician_id = ? AND date = ? UNION SELECT 1 FROM bookings WHERE musician_id = ? AND event_date = ? AND status = 'confirmed'")
     .get(m.id, date, m.id, date);
-  if (busy) return { error: `${m.name} is not available on ${fmtDate(date)}. Try another date or message them.` };
+  if (busy) return { error: t.errors.notAvailable(m.name, d(date)) };
   const eventType = oneOf(str(fd, "event_type"), EVENT_TYPES, "Private parties");
   const notes = str(fd, "notes", 1500);
   const cid = tx(() => {
@@ -342,7 +353,7 @@ export async function requestBookingAction(_: FormState, fd: FormData): Promise<
     );
     const cid = ensureConversation(m.id, v.business.id);
     if (notes) addMessage(cid, v.user.id, notes);
-    addMessage(cid, null, `Booking request: ${eventType} · ${fmtDate(date)} · ${euro(price)}`, "booking", bookingId);
+    addMessage(cid, null, sys("request", { event: eventType, date, price }), "booking", bookingId);
     return cid;
   });
   revalidatePath("/dashboard", "layout");
@@ -365,21 +376,21 @@ export async function bookingAction(fd: FormData) {
   tx(() => {
     if (action === "accept" && open && theirTurn) {
       set("confirmed");
-      addMessage(cid, null, `Booking confirmed at ${euro(b.price)} 🎉 — ${fmtDate(b.event_date)}, ${b.start_time}`, "booking", b.id);
+      addMessage(cid, null, sys("confirmed", { price: b.price, date: b.event_date, time: b.start_time }), "booking", b.id);
     } else if (action === "decline" && open) {
       set("declined");
-      addMessage(cid, null, `Booking request declined by ${v.role === "musician" ? b.musician_name : b.business_name}.`, "booking", b.id);
+      addMessage(cid, null, sys("declined", { by: v.role === "musician" ? b.musician_name : b.business_name }), "booking", b.id);
     } else if (action === "counter" && open && theirTurn) {
       const price = num(fd, "price");
       if (!price) return;
       set("countered", price);
-      addMessage(cid, null, `Counter-offer: ${euro(price)} (was ${euro(b.price)})`, "booking", b.id);
+      addMessage(cid, null, sys("counter", { price, was: b.price }), "booking", b.id);
     } else if (action === "cancel" && (b.status === "confirmed" || open)) {
       set("cancelled");
-      addMessage(cid, null, `Booking for ${fmtDate(b.event_date)} was cancelled by ${v.role === "musician" ? b.musician_name : b.business_name}.`, "booking", b.id);
+      addMessage(cid, null, sys("cancelled", { date: b.event_date, by: v.role === "musician" ? b.musician_name : b.business_name }), "booking", b.id);
     } else if (action === "complete" && b.status === "confirmed" && v.role === "business" && b.event_date <= isoDate(new Date())) {
       set("completed");
-      addMessage(cid, null, `Performance marked as completed. Thanks for booking through SoundCY!`, "booking", b.id);
+      addMessage(cid, null, sys("completed"), "booking", b.id);
     }
   });
   revalidatePath("/messages");
@@ -389,16 +400,17 @@ export async function bookingAction(fd: FormData) {
 export async function reviewAction(_: FormState, fd: FormData): Promise<FormState> {
   const v = await requireViewer();
   const b = getBooking(Number(fd.get("booking_id")));
-  if (v.role !== "business" || !b || b.business_id !== v.business.id || b.status !== "completed") return { error: "You can review a musician after a completed booking." };
+  if (v.role !== "business" || !b || b.business_id !== v.business.id || b.status !== "completed") return { error: (await getI18n()).t.errors.reviewAfter };
   const rating = Math.min(5, Math.max(1, Number(fd.get("rating")) || 5));
   const body = str(fd, "body", 1500);
-  if (body.length < 10) return { error: "Please write a sentence or two about the performance." };
+  const { t } = await getI18n();
+  if (body.length < 10) return { error: t.errors.reviewShort };
   db()
     .prepare("INSERT INTO reviews (musician_id, business_id, author_name, rating, body, event_type) VALUES (?,?,?,?,?,?)")
     .run(b.musician_id, b.business_id, v.business.name, rating, body, b.event_type);
   revalidatePath(`/musicians/${b.musician_slug}`);
   revalidatePath("/dashboard", "layout");
-  return { ok: "Thanks! Your review is live." };
+  return { ok: t.errors.reviewThanks };
 }
 
 /* --------------------------- Messaging -------------------------- */

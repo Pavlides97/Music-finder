@@ -5,9 +5,11 @@ import { useState } from "react";
 import { CalendarDays, MapPin, Music, PartyPopper, Search } from "lucide-react";
 import { EVENT_TYPES, GENRES, LOCATIONS } from "@/lib/constants";
 import { cn, isoDate } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/client";
 
 export function HeroSearch() {
   const router = useRouter();
+  const { t, L } = useI18n();
   const [mode, setMode] = useState<"musicians" | "gigs">("musicians");
   const [f, setF] = useState({ location: "", genre: "", event: "", date: "" });
 
@@ -33,7 +35,7 @@ export function HeroSearch() {
             onClick={() => setMode(m)}
             className={cn("rounded-full px-4 py-1.5 text-xs font-semibold transition", mode === m ? "bg-fg text-ink" : "text-muted hover:text-fg")}
           >
-            {m === "musicians" ? "Search musicians" : "Search gigs"}
+            {m === "musicians" ? t.home.searchMusicians : t.home.searchGigs}
           </button>
         ))}
       </div>
@@ -44,37 +46,37 @@ export function HeroSearch() {
         <label className={field}>
           <MapPin className="h-4 w-4 shrink-0 text-flame" />
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-dim">Location</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-dim">{t.common.location}</span>
             <select className={sel} value={f.location} onChange={(e) => setF({ ...f, location: e.target.value })}>
-              <option value="">All of Cyprus</option>
-              {LOCATIONS.map((l) => <option key={l}>{l}</option>)}
+              <option value="">{t.common.allCyprus}</option>
+              {LOCATIONS.map((l) => <option key={l} value={l}>{L(l)}</option>)}
             </select>
           </span>
         </label>
         <label className={field}>
           <Music className="h-4 w-4 shrink-0 text-flame" />
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-dim">Genre</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-dim">{t.common.genre}</span>
             <select className={sel} value={f.genre} onChange={(e) => setF({ ...f, genre: e.target.value })}>
-              <option value="">Any genre</option>
-              {GENRES.map((g) => <option key={g}>{g}</option>)}
+              <option value="">{t.common.anyGenre}</option>
+              {GENRES.map((g) => <option key={g} value={g}>{L(g)}</option>)}
             </select>
           </span>
         </label>
         <label className={field}>
           <PartyPopper className="h-4 w-4 shrink-0 text-flame" />
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-dim">Event type</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-dim">{t.common.eventType}</span>
             <select className={sel} value={f.event} onChange={(e) => setF({ ...f, event: e.target.value })}>
-              <option value="">Any event</option>
-              {EVENT_TYPES.map((g) => <option key={g}>{g}</option>)}
+              <option value="">{t.common.anyEvent}</option>
+              {EVENT_TYPES.map((g) => <option key={g} value={g}>{L(g)}</option>)}
             </select>
           </span>
         </label>
         <label className={cn(field, mode === "gigs" && "opacity-40")}>
           <CalendarDays className="h-4 w-4 shrink-0 text-flame" />
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-dim">{mode === "gigs" ? "Any date" : "Available on"}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-dim">{mode === "gigs" ? t.home.anyDate : t.common.availableOn}</span>
             <input
               type="date"
               disabled={mode === "gigs"}
@@ -86,7 +88,7 @@ export function HeroSearch() {
           </span>
         </label>
         <button type="submit" className="btn-primary btn-lg rounded-xl sm:col-span-2 lg:col-span-1">
-          <Search className="h-5 w-5" /> Search
+          <Search className="h-5 w-5" /> {t.common.search}
         </button>
       </form>
     </div>

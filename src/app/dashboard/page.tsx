@@ -13,17 +13,24 @@ import {
   type Booking,
   type Musician,
 } from "@/lib/data";
-import { euro, fmtDate, isoDate } from "@/lib/utils";
+import { isoDate } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n/server";
+import type { I18n } from "@/lib/i18n";
 import { Empty, PageHead, Panel, Stat } from "@/components/dashboard/ui";
 import { BookingCard } from "@/components/messages/Chat";
 import { GigCard, MusicianCard } from "@/components/cards";
 import { Photo } from "@/components/ui/Photo";
 import { StatusPill } from "@/components/ui/StatusPill";
 
-export const metadata: Metadata = { title: "Dashboard" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.dash.meta, robots: { index: false } };
+}
 
 export default async function DashboardHome() {
   const v = await requireViewer();
+  const i18n = await getI18n();
+  const { t, d, eur } = i18n;
   const bookings = bookingsFor(v.role, v.profileId);
   const today = isoDate(new Date());
   const needs = bookings.filter((b) => (b.status === "pending" || b.status === "countered") && b.last_action_by !== v.role);
@@ -39,21 +46,21 @@ export default async function DashboardHome() {
       ? [...new Map(m.genres.flatMap((g) => searchGigs({ genre: g }, 4)).map((g) => [g.id, g])).values()].slice(0, 4)
       : searchGigs({}, 4);
     const earnings = bookings.filter((b) => b.status === "confirmed" || b.status === "completed").reduce((s, b) => s + b.price, 0);
-    const checklist = profileChecklist(m);
+    const checklist = profileChecklist(m, t);
     const done = checklist.filter((c) => c.done).length;
 
     return (
       <div className="space-y-6">
-        <PageHead title={`Kalimera, ${first} 👋`} subtitle="Here's what's happening with your bookings." action={<Link href="/gigs" className="btn-primary"><Search className="h-4 w-4" /> Find gigs</Link>} />
+        <PageHead title={t.dash.helloMusician(first)} subtitle={t.dash.musicianSub} action={<Link href="/gigs" className="btn-primary"><Search className="h-4 w-4" /> {t.dash.findGigs}</Link>} />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat label="Needs your reply" value={needs.length} tone="flame" hint="Booking requests & offers" />
-          <Stat label="Upcoming gigs" value={upcoming.length} tone="lime" hint={upcoming[0] ? `Next: ${fmtDate(upcoming[0].event_date)}` : "Nothing booked yet"} />
-          <Stat label="Active applications" value={apps.filter((a) => a.status === "pending" || a.status === "shortlisted").length} tone="violet" />
-          <Stat label="Booked value" value={euro(earnings)} tone="sky" hint={m.review_count ? `★ ${m.rating.toFixed(1)} from ${m.review_count} reviews` : "No reviews yet"} />
+          <Stat label={t.dash.needsReply} value={needs.length} tone="flame" hint={t.dash.needsReplyHintM} />
+          <Stat label={t.dash.upcomingGigs} value={upcoming.length} tone="lime" hint={upcoming[0] ? t.dash.next(d(upcoming[0].event_date)) : t.dash.nothingBooked} />
+          <Stat label={t.dash.activeApps} value={apps.filter((a) => a.status === "pending" || a.status === "shortlisted").length} tone="violet" />
+          <Stat label={t.dash.bookedValue} value={eur(earnings)} tone="sky" hint={m.review_count ? t.dash.ratingHint(m.rating.toFixed(1), m.review_count) : t.dash.noReviews} />
         </div>
 
         {done < checklist.length && (
-          <Panel title={`Complete your profile — ${Math.round((done / checklist.length) * 100)}%`} href="/dashboard/profile" cta="Edit profile">
+          <Panel title={t.dash.complete(Math.round((done / checklist.length) * 100))} href="/dashboard/profile" cta={t.profile.editProfile} viewAll={t.common.viewAll}>
             <div className="mb-4 h-2 overflow-hidden rounded-full bg-white/10">
               <div className="h-full rounded-full bg-brand" style={{ width: `${(done / checklist.length) * 100}%` }} />
             </div>
@@ -67,39 +74,39 @@ export default async function DashboardHome() {
           </Panel>
         )}
 
-        <Panel title="Needs your response" href="/dashboard/bookings">
+        <Panel title={t.dash.needsResponse} href="/dashboard/bookings" viewAll={t.common.viewAll}>
           {needs.length ? (
             <div className="scrollbar-none -mx-1 flex gap-3 overflow-x-auto px-1">{needs.map((b) => <BookingCard key={b.id} b={b} role="musician" />)}</div>
           ) : (
-            <Empty>You&apos;re all caught up. {waiting.length ? `${waiting.length} offer(s) waiting on the venue.` : ""}</Empty>
+            <Empty>{t.dash.caughtUp} {waiting.length ? t.dash.waitingOnVenue(waiting.length) : ""}</Empty>
           )}
         </Panel>
 
         <div className="grid gap-6 xl:grid-cols-2">
-          <Panel title="Upcoming performances" href="/dashboard/bookings">
-            <BookingList items={upcoming.slice(0, 5)} role="musician" empty="No confirmed gigs yet — apply to open gigs to fill your calendar." />
+          <Panel title={t.dash.upcomingPerformances} href="/dashboard/bookings" viewAll={t.common.viewAll}>
+            <BookingList items={upcoming.slice(0, 5)} role="musician" empty={t.dash.noConfirmedGigs} i18n={i18n} />
           </Panel>
-          <Panel title="My applications" href="/dashboard/applications">
+          <Panel title={t.dash.myApplications} href="/dashboard/applications" viewAll={t.common.viewAll}>
             {apps.length ? (
               <ul className="divide-y divide-line">
                 {apps.slice(0, 5).map((a) => (
                   <li key={a.id} className="flex items-center justify-between gap-3 py-3">
                     <div className="min-w-0">
                       <Link href={`/gigs/${a.gig_id}`} className="block truncate text-sm font-semibold hover:text-flame">{a.gig_title}</Link>
-                      <p className="text-xs text-muted">{a.business_name} · {fmtDate(a.gig_date)}</p>
+                      <p className="text-xs text-muted">{a.business_name} · {d(a.gig_date)}</p>
                     </div>
                     <StatusPill status={a.status} />
                   </li>
                 ))}
               </ul>
             ) : (
-              <Empty>No applications yet. <Link href="/gigs" className="text-flame">Browse gigs</Link></Empty>
+              <Empty>{t.dash.noApplications} <Link href="/gigs" className="text-flame">{t.dash.browseGigs}</Link></Empty>
             )}
           </Panel>
         </div>
 
         <section>
-          <h2 className="mb-4 font-bold">Gigs that match your sound</h2>
+          <h2 className="mb-4 font-bold">{t.dash.matchingGigs}</h2>
           <div className="grid gap-4 md:grid-cols-2">{recommended.map((g) => <GigCard key={g.id} g={g} compact />)}</div>
         </section>
       </div>
@@ -118,30 +125,30 @@ export default async function DashboardHome() {
   return (
     <div className="space-y-6">
       <PageHead
-        title={`Welcome back, ${first} 👋`}
-        subtitle={`${b.category} · ${b.location}`}
-        action={<Link href="/dashboard/gigs/new" className="btn-primary"><PlusCircle className="h-4 w-4" /> Post a gig</Link>}
+        title={t.dash.helloVenue(first)}
+        subtitle={`${i18n.L(b.category)} · ${i18n.L(b.location)}`}
+        action={<Link href="/dashboard/gigs/new" className="btn-primary"><PlusCircle className="h-4 w-4" /> {t.dash.postGig}</Link>}
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Needs your reply" value={needs.length} tone="flame" hint="Counter-offers & requests" />
-        <Stat label="Upcoming events" value={upcoming.length} tone="lime" hint={upcoming[0] ? `Next: ${fmtDate(upcoming[0].event_date)}` : "Nothing confirmed"} />
-        <Stat label="Open gigs" value={openGigs.length} tone="violet" hint={`${applicants.length} applicants to review`} />
-        <Stat label="Saved musicians" value={saved.length} tone="sky" />
+        <Stat label={t.dash.needsReply} value={needs.length} tone="flame" hint={t.dash.needsReplyHintB} />
+        <Stat label={t.dash.upcomingEvents} value={upcoming.length} tone="lime" hint={upcoming[0] ? t.dash.next(d(upcoming[0].event_date)) : t.dash.nothingConfirmed} />
+        <Stat label={t.dash.openGigs} value={openGigs.length} tone="violet" hint={t.dash.toReview(applicants.length)} />
+        <Stat label={t.dash.savedMusicians} value={saved.length} tone="sky" />
       </div>
 
-      <Panel title="Needs your response" href="/dashboard/bookings">
+      <Panel title={t.dash.needsResponse} href="/dashboard/bookings" viewAll={t.common.viewAll}>
         {needs.length ? (
           <div className="scrollbar-none -mx-1 flex gap-3 overflow-x-auto px-1">{needs.map((x) => <BookingCard key={x.id} b={x} role="business" />)}</div>
         ) : (
-          <Empty>All caught up. {waiting.length ? `${waiting.length} request(s) waiting on musicians.` : ""}</Empty>
+          <Empty>{t.dash.caughtUp} {waiting.length ? t.dash.waitingOnMusician(waiting.length) : ""}</Empty>
         )}
       </Panel>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <Panel title="Confirmed events" href="/dashboard/bookings">
-          <BookingList items={upcoming.slice(0, 5)} role="business" empty="No confirmed events yet. Find a musician or post a gig." />
+        <Panel title={t.dash.confirmedEvents} href="/dashboard/bookings" viewAll={t.common.viewAll}>
+          <BookingList items={upcoming.slice(0, 5)} role="business" empty={t.dash.noConfirmedEvents} i18n={i18n} />
         </Panel>
-        <Panel title="New applicants" href="/dashboard/gigs">
+        <Panel title={t.dash.newApplicants} href="/dashboard/gigs" viewAll={t.common.viewAll}>
           {applicants.length ? (
             <ul className="divide-y divide-line">
               {applicants.slice(0, 5).map((a) => (
@@ -151,20 +158,20 @@ export default async function DashboardHome() {
                     <Link href={`/musicians/${a.musician_slug}`} className="block truncate text-sm font-semibold hover:text-flame">{a.musician_name}</Link>
                     <p className="truncate text-xs text-muted">{a.gig_title}</p>
                   </div>
-                  <span className="text-sm font-semibold">{euro(a.quote)}</span>
+                  <span className="text-sm font-semibold">{eur(a.quote)}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <Empty>No new applicants. <Link href="/dashboard/gigs/new" className="text-flame">Post a gig</Link> to attract musicians.</Empty>
+            <Empty>{t.dash.noApplicants} <Link href="/dashboard/gigs/new" className="text-flame">{t.dash.postGig}</Link> {t.dash.toAttract}</Empty>
           )}
         </Panel>
       </div>
 
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-bold">Recommended for {b.name}</h2>
-          <Link href={`/musicians?location=${encodeURIComponent(b.location)}`} className="text-xs font-semibold text-flame hover:underline">Search musicians →</Link>
+          <h2 className="font-bold">{t.dash.recommendedFor(b.name)}</h2>
+          <Link href={`/musicians?location=${encodeURIComponent(b.location)}`} className="text-xs font-semibold text-flame hover:underline">{t.dash.searchMusicians}</Link>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">{recommended.map((m) => <MusicianCard key={m.id} m={m} />)}</div>
       </section>
@@ -172,7 +179,7 @@ export default async function DashboardHome() {
   );
 }
 
-function BookingList({ items, role, empty }: { items: Booking[]; role: "musician" | "business"; empty: string }) {
+function BookingList({ items, role, empty, i18n }: { items: Booking[]; role: "musician" | "business"; empty: string; i18n: I18n }) {
   if (!items.length) return <Empty>{empty}</Empty>;
   return (
     <ul className="divide-y divide-line">
@@ -181,7 +188,7 @@ function BookingList({ items, role, empty }: { items: Booking[]; role: "musician
         return (
           <li key={b.id} className="flex items-center gap-4 py-3">
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-center leading-none">
-              <span className="text-[10px] font-bold uppercase text-flame">{d.toLocaleDateString("en-GB", { month: "short" })}</span>
+              <span className="text-[10px] font-bold uppercase text-flame">{i18n.d(b.event_date, { month: "short" })}</span>
               <span className="display text-lg font-bold">{d.getDate()}</span>
             </div>
             <div className="min-w-0 flex-1">
@@ -190,7 +197,7 @@ function BookingList({ items, role, empty }: { items: Booking[]; role: "musician
                 <CalendarDays className="h-3 w-3" /> {b.start_time} · <MapPin className="h-3 w-3" /> {b.venue}
               </p>
             </div>
-            <span className="text-sm font-semibold text-lime">{euro(b.price)}</span>
+            <span className="text-sm font-semibold text-lime">{i18n.eur(b.price)}</span>
           </li>
         );
       })}
@@ -198,15 +205,15 @@ function BookingList({ items, role, empty }: { items: Booking[]; role: "musician
   );
 }
 
-function profileChecklist(m: Musician) {
+function profileChecklist(m: Musician, t: I18n["t"]) {
   return [
-    { label: "Profile photo", done: !!m.avatar },
-    { label: "Cover image", done: !!m.cover },
-    { label: "Bio (100+ characters)", done: m.bio.length >= 100 },
-    { label: "Genres & event types", done: m.genres.length > 0 && m.event_types.length > 0 },
-    { label: "Audio samples", done: m.tracks.length > 0 },
-    { label: "Performance photos", done: m.photos.length > 0 },
-    { label: "Performance options", done: m.performances.length > 0 },
-    { label: "Video or Spotify link", done: m.videos.length > 0 },
+    { label: t.dash.check.photo, done: !!m.avatar },
+    { label: t.dash.check.cover, done: !!m.cover },
+    { label: t.dash.check.bio, done: m.bio.length >= 100 },
+    { label: t.dash.check.genres, done: m.genres.length > 0 && m.event_types.length > 0 },
+    { label: t.dash.check.audio, done: m.tracks.length > 0 },
+    { label: t.dash.check.photos, done: m.photos.length > 0 },
+    { label: t.dash.check.performances, done: m.performances.length > 0 },
+    { label: t.dash.check.video, done: m.videos.length > 0 },
   ];
 }

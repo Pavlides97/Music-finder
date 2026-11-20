@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Loader2, Search, SlidersHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/client";
 
 export type FilterDef =
   | { name: string; label: string; type: "select"; options: readonly (string | { value: string; label: string })[]; placeholder: string }
@@ -14,14 +15,15 @@ export function FilterBar({
   sorts,
   searchPlaceholder,
   total,
-  noun,
+  countLabel,
 }: {
   filters: FilterDef[];
   sorts: { value: string; label: string }[];
   searchPlaceholder: string;
   total: number;
-  noun: string;
+  countLabel: string;
 }) {
+  const { t, d, eur } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -36,6 +38,13 @@ export function FilterBar({
     start(() => router.replace(`${pathname}${p.size ? "?" + p.toString() : ""}`, { scroll: false }));
   };
   const active = filters.filter((f) => params.get(f.name));
+  const chipLabel = (f: FilterDef) => {
+    const v = params.get(f.name) ?? "";
+    if (f.type === "date") return t.search.freeOn(d(v));
+    if (f.name === "budget") return f.label + ": " + eur(Number(v));
+    const opt = f.options.find((o) => (typeof o === "string" ? o : o.value) === v);
+    return typeof opt === "object" ? opt.label : v;
+  };
   const clearAll = () => {
     setQ("");
     start(() => router.replace(pathname, { scroll: false }));
@@ -77,14 +86,14 @@ export function FilterBar({
           }}
         >
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-dim" />
-          <input className="input rounded-full py-3 pl-11 pr-24" value={q} onChange={(e) => setQ(e.target.value)} placeholder={searchPlaceholder} aria-label="Search" />
-          <button className="btn-primary btn-sm absolute right-1.5 top-1/2 -translate-y-1/2">Search</button>
+          <input className="input rounded-full py-3 pl-11 pr-24" value={q} onChange={(e) => setQ(e.target.value)} placeholder={searchPlaceholder} aria-label={t.common.search} />
+          <button className="btn-primary btn-sm absolute right-1.5 top-1/2 -translate-y-1/2">{t.common.search}</button>
         </form>
         <div className="flex items-center gap-2">
           <button onClick={() => setOpen(true)} className="btn-ghost lg:hidden">
-            <SlidersHorizontal className="h-4 w-4" /> Filters {active.length ? <span className="rounded-full bg-flame px-1.5 text-[10px] text-ink">{active.length}</span> : null}
+            <SlidersHorizontal className="h-4 w-4" /> {t.search.filters} {active.length ? <span className="rounded-full bg-flame px-1.5 text-[10px] text-ink">{active.length}</span> : null}
           </button>
-          <select className="input w-auto rounded-full" value={params.get("sort") ?? ""} onChange={(e) => update("sort", e.target.value)} aria-label="Sort">
+          <select className="input w-auto rounded-full" value={params.get("sort") ?? ""} onChange={(e) => update("sort", e.target.value)} aria-label={t.search.sort}>
             {sorts.map((s) => (
               <option key={s.value} value={s.value}>
                 {s.label}
@@ -99,8 +108,7 @@ export function FilterBar({
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
         {pending ? <Loader2 className="h-4 w-4 animate-spin text-flame" /> : null}
         <span>
-          <strong className="text-fg">{total}</strong> {noun}
-          {total === 1 ? "" : "s"}
+          <strong className="text-fg">{total}</strong> {countLabel}
         </span>
         {params.get("q") && (
           <button onClick={() => { setQ(""); update("q", ""); }} className="chip hover:text-fg">
@@ -109,12 +117,12 @@ export function FilterBar({
         )}
         {active.map((f) => (
           <button key={f.name} onClick={() => update(f.name, "")} className="chip border-flame/30 text-flame hover:text-fg">
-            {f.name === "budget" ? `Max €${params.get(f.name)}` : f.name === "date" ? `Free on ${params.get(f.name)}` : params.get(f.name)} <X className="h-3 w-3" />
+            {chipLabel(f)} <X className="h-3 w-3" />
           </button>
         ))}
         {(active.length > 0 || params.get("q")) && (
           <button onClick={clearAll} className="text-xs font-semibold text-muted underline-offset-2 hover:text-fg hover:underline">
-            Clear all
+            {t.search.clearAll}
           </button>
         )}
       </div>
@@ -124,15 +132,15 @@ export function FilterBar({
           <div className="absolute inset-0 bg-ink/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-3xl border-t border-line-strong bg-surface p-5 pb-8">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="display text-xl font-bold">Filters</h3>
-              <button onClick={() => setOpen(false)} className="btn-quiet" aria-label="Close filters">
+              <h3 className="display text-xl font-bold">{t.search.filters}</h3>
+              <button onClick={() => setOpen(false)} className="btn-quiet" aria-label={t.common.close}>
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="grid gap-4">{controls}</div>
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <button onClick={clearAll} className="btn-ghost">Clear</button>
-              <button onClick={() => setOpen(false)} className={cn("btn-primary")}>Show {total} results</button>
+              <button onClick={clearAll} className="btn-ghost">{t.search.clear}</button>
+              <button onClick={() => setOpen(false)} className={cn("btn-primary")}>{t.search.showResults(total)}</button>
             </div>
           </div>
         </div>

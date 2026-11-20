@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
 import type { Track } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/client";
 import { Equalizer } from "../ui/Equalizer";
 
 export function AudioPlayer({ tracks, artist }: { tracks: Track[]; artist: string }) {
+  const i18n = useI18n();
   const audio = useRef<HTMLAudioElement>(null);
   const [current, setCurrent] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -60,7 +62,7 @@ export function AudioPlayer({ tracks, artist }: { tracks: Track[]; artist: strin
             <button
               onClick={() => toggle(i)}
               className={cn("grid h-11 w-11 shrink-0 place-items-center rounded-full transition", active && playing ? "bg-flame text-ink" : "bg-white/10 text-fg hover:bg-flame hover:text-ink")}
-              aria-label={active && playing ? `Pause ${t.title}` : `Play ${t.title}`}
+              aria-label={active && playing ? i18n.t.booking.pause(t.title) : i18n.t.booking.play(t.title)}
             >
               {active && playing ? <Pause className="h-5 w-5 fill-current" /> : <Play className="ml-0.5 h-5 w-5 fill-current" />}
             </button>
@@ -79,7 +81,7 @@ export function AudioPlayer({ tracks, artist }: { tracks: Track[]; artist: strin
           </div>
         );
       })}
-      <p className="pt-1 text-[11px] text-dim">Demo previews use royalty-free sample audio.</p>
+      <p className="pt-1 text-[11px] text-dim">{i18n.t.booking.demoAudio}</p>
     </div>
   );
 }

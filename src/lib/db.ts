@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS businesses (
   location TEXT NOT NULL DEFAULT 'Nicosia',
   address TEXT,
   description TEXT NOT NULL DEFAULT '',
+  description_el TEXT,
   music_wanted TEXT NOT NULL DEFAULT '[]',
   budget_min INTEGER,
   budget_max INTEGER,
@@ -113,6 +114,8 @@ CREATE TABLE IF NOT EXISTS gigs (
   budget_min INTEGER,
   budget_max INTEGER,
   description TEXT NOT NULL DEFAULT '',
+  title_el TEXT,
+  description_el TEXT,
   deadline TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','closed','filled')),
   urgent INTEGER NOT NULL DEFAULT 0,
@@ -241,6 +244,10 @@ export function db(): Database {
   // Lightweight migrations for databases created by earlier versions.
   const cols = conn.prepare("PRAGMA table_info(musicians)").all().map((c) => String(c.name));
   if (!cols.includes("price_to")) conn.exec("ALTER TABLE musicians ADD COLUMN price_to INTEGER");
+  const has = (table: string, col: string) => conn.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === col);
+  if (!has("businesses", "description_el")) conn.exec("ALTER TABLE businesses ADD COLUMN description_el TEXT");
+  if (!has("gigs", "title_el")) conn.exec("ALTER TABLE gigs ADD COLUMN title_el TEXT");
+  if (!has("gigs", "description_el")) conn.exec("ALTER TABLE gigs ADD COLUMN description_el TEXT");
   g.__soundcyDb = conn;
   const count = conn.prepare("SELECT COUNT(*) AS n FROM users").get() as { n: number };
   if (!count.n) {

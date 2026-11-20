@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import type { Database } from "./db";
 import { hashPassword } from "./password";
 import { addDays, isoDate } from "./utils";
+import { GIG_EL, VENUE_DESC_EL } from "./seed-el";
 
 const J = JSON.stringify;
 const day = (n: number) => isoDate(addDays(new Date(), n));
@@ -262,23 +263,23 @@ export function seed(conn: Database) {
     });
 
     // Fictional sample venues & gigs (demo business logins use password demo1234).
-    const insB = conn.prepare(`INSERT INTO businesses (user_id, slug, name, category, location, address, description, music_wanted, budget_min, budget_max, capacity, logo, cover, phone, public_email, website, verified)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+    const insB = conn.prepare(`INSERT INTO businesses (user_id, slug, name, category, location, address, description, music_wanted, budget_min, budget_max, capacity, logo, cover, phone, public_email, website, verified, description_el)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
     const bIds: Record<string, number> = {};
     BUSINESSES.forEach((b) => {
       const u = insUser.run(b.email, demoPw, "business", b.name);
       const slug = b.name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
       const r = insB.run(
         Number(u.lastInsertRowid), slug, b.name, b.category, b.location, b.address, b.description, J(b.wanted), b.bmin, b.bmax,
-        b.capacity || null, b.logo, b.cover, b.phone, b.email.replace("@demo.soundcy.app", "@hello.example.cy"), b.website, b.verified ? 1 : 0,
+        b.capacity || null, b.logo, b.cover, b.phone, b.email.replace("@demo.soundcy.app", "@hello.example.cy"), b.website, b.verified ? 1 : 0, VENUE_DESC_EL[b.email] ?? null,
       );
       bIds[b.email] = Number(r.lastInsertRowid);
     });
 
-    const insG = conn.prepare(`INSERT INTO gigs (business_id, title, event_date, start_time, end_time, location, venue, genres, performer_type, event_type, budget_min, budget_max, description, deadline, urgent, created_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+    const insG = conn.prepare(`INSERT INTO gigs (business_id, title, event_date, start_time, end_time, location, venue, genres, performer_type, event_type, budget_min, budget_max, description, deadline, urgent, created_at, title_el, description_el)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
     GIGS.forEach((g, i) => {
-      insG.run(bIds[g.biz], g.title, day(g.in), g.start, g.end, g.loc, g.venue ?? BUSINESSES.find((b) => b.email === g.biz)!.name, J(g.genres), g.type, g.event, g.min, g.max, g.desc, day(g.deadlineIn), g.urgent ? 1 : 0, ts(-(i % 6) - 1));
+      insG.run(bIds[g.biz], g.title, day(g.in), g.start, g.end, g.loc, g.venue ?? BUSINESSES.find((b) => b.email === g.biz)!.name, J(g.genres), g.type, g.event, g.min, g.max, g.desc, day(g.deadlineIn), g.urgent ? 1 : 0, ts(-(i % 6) - 1), GIG_EL[g.title]?.[0] ?? null, GIG_EL[g.title]?.[1] ?? null);
     });
 
     conn.exec("COMMIT");

@@ -1,20 +1,26 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { SearchX } from "lucide-react";
+import { SearchX, Sparkles } from "lucide-react";
 import { MusicianCard } from "@/components/cards";
 import { FilterBar, type FilterDef } from "@/components/search/FilterBar";
 import { searchMusicians } from "@/lib/data";
 import { BUDGET_STEPS, EVENT_TYPES, GENRES, LOCATIONS, PERFORMER_TYPES } from "@/lib/constants";
 import { isoDate } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = { title: "Find Musicians in Cyprus" };
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.dir.musiciansMeta, description: t.dir.musiciansText };
+}
 
 type SP = Promise<Record<string, string | undefined>>;
 
 export default async function MusiciansPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
+  const { t, L, lang, eur } = await getI18n();
   const results = searchMusicians({
     q: sp.q,
     location: sp.location,
@@ -26,43 +32,53 @@ export default async function MusiciansPage({ searchParams }: { searchParams: SP
     sort: sp.sort,
   });
 
+  const opts = (list: readonly string[]) => list.map((v) => ({ value: v, label: L(v) }));
   const filters: FilterDef[] = [
-    { name: "location", label: "Location", type: "select", options: LOCATIONS, placeholder: "All of Cyprus" },
-    { name: "genre", label: "Genre", type: "select", options: GENRES, placeholder: "Any genre" },
-    { name: "type", label: "Performer", type: "select", options: PERFORMER_TYPES, placeholder: "Any type" },
-    { name: "event", label: "Event type", type: "select", options: EVENT_TYPES, placeholder: "Any event" },
-    { name: "budget", label: "Budget", type: "select", options: BUDGET_STEPS.map((b) => ({ value: String(b), label: `Up to €${b.toLocaleString()}` })), placeholder: "Any budget" },
-    { name: "date", label: "Available on", type: "date", min: isoDate(new Date()) },
+    { name: "location", label: t.common.location, type: "select", options: opts(LOCATIONS), placeholder: t.common.allCyprus },
+    { name: "genre", label: t.common.genre, type: "select", options: opts(GENRES), placeholder: t.common.anyGenre },
+    { name: "type", label: t.common.performer, type: "select", options: opts(PERFORMER_TYPES), placeholder: t.common.anyType },
+    { name: "event", label: t.common.eventType, type: "select", options: opts(EVENT_TYPES), placeholder: t.common.anyEvent },
+    { name: "budget", label: t.common.budget, type: "select", options: BUDGET_STEPS.map((b) => ({ value: String(b), label: t.dir.upTo(eur(b)) })), placeholder: t.common.anyBudget },
+    { name: "date", label: t.common.availableOn, type: "date", min: isoDate(new Date()) },
   ];
 
-  const heading = [sp.genre, sp.type ? sp.type + "s" : "musicians", sp.location ? `in ${sp.location}` : "in Cyprus"].filter(Boolean).join(" ");
+  const parts = [sp.genre, sp.type, sp.location].filter(Boolean).map((v) => L(v!));
+  const heading =
+    lang === "en"
+      ? [sp.genre, sp.type ? sp.type + "s" : "Musicians", "in", sp.location ?? "Cyprus"].filter(Boolean).join(" ")
+      : parts.length
+        ? t.dir.musiciansIn(parts.join(" · "))
+        : t.dir.musiciansTitle;
 
   return (
     <div className="container-x py-10 sm:py-14">
-      <p className="eyebrow">Musician directory</p>
-      <h1 className="display mt-2 text-4xl font-extrabold capitalize sm:text-5xl">{heading}</h1>
-      <p className="mt-3 max-w-2xl text-muted">Singers, bands, DJs and instrumentalists ready to perform. Filter by what matters, listen to samples and send a booking request in minutes.</p>
+      <p className="eyebrow">{t.dir.musiciansEyebrow}</p>
+      <h1 className="display mt-2 text-4xl font-extrabold sm:text-5xl">{heading}</h1>
+      <p className="mt-3 max-w-2xl text-muted">{t.dir.musiciansText}</p>
+      <Link href="/match" className="group mt-4 inline-flex items-center gap-2 text-sm font-semibold text-flame-2 hover:text-flame">
+        <Sparkles className="h-4 w-4" /> {t.dir.orTryMatch}
+      </Link>
 
       <div className="mt-8">
         <Suspense>
           <FilterBar
             filters={filters}
             total={results.length}
-            noun="musician"
-            searchPlaceholder="Search by name, style or keyword — e.g. “bouzouki”, “sax”, “wedding”"
+            countLabel={t.dir.musicianCount(results.length)}
+            searchPlaceholder={t.dir.musiciansSearch}
             sorts={[
-              { value: "", label: "Recommended" },
-              { value: "rating", label: "Top rated" },
-              { value: "price_asc", label: "Price: low to high" },
-              { value: "price_desc", label: "Price: high to low" },
-              { value: "new", label: "Newest" },
+              { value: "", label: t.dir.sortRecommended },
+              { value: "rating", label: t.dir.sortRating },
+              { value: "price_asc", label: t.dir.sortPriceAsc },
+              { value: "price_desc", label: t.dir.sortPriceDesc },
+              { value: "new", label: t.dir.sortNew },
             ]}
           />
         </Suspense>
       </div>
 
       {results.length ? (
-        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {results.map((m, i) => (
             <MusicianCard key={m.id} m={m} priority={i < 4} />
           ))}
@@ -70,11 +86,11 @@ export default async function MusiciansPage({ searchParams }: { searchParams: SP
       ) : (
         <div className="card mt-10 flex flex-col items-center gap-3 px-6 py-16 text-center">
           <SearchX className="h-10 w-10 text-dim" />
-          <h2 className="display text-2xl font-bold">No musicians match those filters</h2>
-          <p className="max-w-md text-muted">Try widening your budget, picking a different date or searching all of Cyprus. Or post a gig and let musicians come to you.</p>
-          <div className="mt-2 flex gap-3">
-            <Link href="/musicians" className="btn-ghost">Reset filters</Link>
-            <Link href="/dashboard/gigs/new" className="btn-primary">Post a gig</Link>
+          <h2 className="display text-2xl font-bold">{t.dir.noMusicians}</h2>
+          <p className="max-w-md text-muted">{t.dir.noMusiciansText}</p>
+          <div className="mt-2 flex flex-wrap justify-center gap-3">
+            <Link href="/musicians" className="btn-ghost">{t.dir.resetFilters}</Link>
+            <Link href="/match" className="btn-primary"><Sparkles className="h-4 w-4" /> {t.nav.match}</Link>
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "./db";
 import { isoDate, parseList } from "./utils";
+import { englishValuesFor } from "./i18n/core";
 
 /* ---------- Types ---------- */
 export type Track = { title: string; url: string; duration?: string };
@@ -49,6 +50,7 @@ export type Business = {
   location: string;
   address: string | null;
   description: string;
+  description_el: string | null;
   music_wanted: string[];
   budget_min: number | null;
   budget_max: number | null;
@@ -77,6 +79,8 @@ export type Gig = {
   budget_min: number | null;
   budget_max: number | null;
   description: string;
+  title_el: string | null;
+  description_el: string | null;
   deadline: string;
   status: "open" | "closed" | "filled";
   urgent: number;
@@ -189,9 +193,13 @@ export function searchMusicians(f: MusicianFilters, limit = 60): Musician[] {
   const where: string[] = [];
   const params: (string | number)[] = [];
   if (f.q) {
-    where.push("(m.name LIKE ? OR m.tagline LIKE ? OR m.bio LIKE ? OR m.genres LIKE ?)");
-    const like = `%${f.q}%`;
-    params.push(like, like, like, like);
+    // Also match Greek words for genres/cities/types ("λαϊκό" → Laiko) against the English stored values.
+    const terms = [f.q, ...englishValuesFor(f.q)];
+    where.push("(" + terms.map(() => "m.name LIKE ? OR m.tagline LIKE ? OR m.bio LIKE ? OR m.genres LIKE ? OR m.location LIKE ? OR m.performer_type LIKE ? OR m.event_types LIKE ?").join(" OR ") + ")");
+    for (const term of terms) {
+      const like = `%${term}%`;
+      params.push(like, like, like, like, like, like, like);
+    }
   }
   if (f.location) {
     where.push("m.location = ?");
@@ -333,8 +341,12 @@ export function searchGigs(f: GigFilters, limit = 60): Gig[] {
   const where = ["g.status = 'open'", "g.deadline >= ?"];
   const params: (string | number)[] = [today()];
   if (f.q) {
-    where.push("(g.title LIKE ? OR g.description LIKE ? OR b.name LIKE ?)");
-    params.push(`%${f.q}%`, `%${f.q}%`, `%${f.q}%`);
+    const terms = [f.q, ...englishValuesFor(f.q)];
+    where.push("(" + terms.map(() => "g.title LIKE ? OR g.description LIKE ? OR g.title_el LIKE ? OR g.description_el LIKE ? OR b.name LIKE ? OR g.location LIKE ? OR g.genres LIKE ? OR g.event_type LIKE ?").join(" OR ") + ")");
+    for (const term of terms) {
+      const like = `%${term}%`;
+      params.push(like, like, like, like, like, like, like, like);
+    }
   }
   if (f.location) {
     where.push("g.location = ?");

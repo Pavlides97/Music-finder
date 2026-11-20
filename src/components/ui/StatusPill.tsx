@@ -1,3 +1,6 @@
+"use client";
+
+import { useI18n } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 const STYLES: Record<string, string> = {
@@ -15,26 +18,13 @@ const STYLES: Record<string, string> = {
   filled: "bg-sky-400/10 text-sky-300 ring-sky-400/25",
 };
 
-const LABELS: Record<string, string> = {
-  pending: "Awaiting reply",
-  countered: "Counter-offer",
-  confirmed: "Confirmed",
-  completed: "Completed",
-  declined: "Declined",
-  cancelled: "Cancelled",
-  shortlisted: "Shortlisted",
-  accepted: "Hired",
-  withdrawn: "Withdrawn",
-  open: "Open",
-  closed: "Closed",
-  filled: "Filled",
-};
-
 export function StatusPill({ status, className }: { status: string; className?: string }) {
+  const { t } = useI18n();
+  const label = (t.status as Record<string, string>)[status] ?? status;
   return (
     <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset", STYLES[status] ?? STYLES.cancelled, className)}>
       <span className="h-1.5 w-1.5 rounded-full bg-current" />
-      {LABELS[status] ?? status}
+      {label}
     </span>
   );
 }

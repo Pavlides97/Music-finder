@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/client";
 
 export function ChipGroup({ name, options, defaultValue = [], label, tone = "violet" }: { name: string; options: readonly string[]; defaultValue?: string[]; label: string; tone?: "violet" | "flame" }) {
   const [sel, setSel] = useState<string[]>(defaultValue);
+  const { L } = useI18n();
   return (
     <fieldset>
       <legend className="label">{label}</legend>
@@ -20,7 +22,7 @@ export function ChipGroup({ name, options, defaultValue = [], label, tone = "vio
               )}
             >
               <input type="checkbox" name={name} value={o} className="sr-only" checked={on} onChange={() => setSel(on ? sel.filter((x) => x !== o) : [...sel, o])} />
-              {o}
+              {L(o)}
             </label>
           );
         })}

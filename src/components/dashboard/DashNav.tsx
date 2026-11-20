@@ -19,10 +19,10 @@ import { cn } from "@/lib/utils";
 const ICONS = { Home, UserRound, CalendarCheck, ClipboardList, CalendarDays, MessageCircle, Megaphone, PlusCircle, Bookmark, Search };
 export type NavItem = { href: string; label: string; icon: keyof typeof ICONS; badge?: number };
 
-export function DashNav({ items }: { items: NavItem[] }) {
+export function DashNav({ items, label }: { items: NavItem[]; label: string }) {
   const path = usePathname();
   return (
-    <nav className="scrollbar-none -mx-4 flex gap-1 overflow-x-auto px-4 lg:mx-0 lg:flex-col lg:px-0" aria-label="Dashboard">
+    <nav className="scrollbar-none -mx-4 flex gap-1 overflow-x-auto px-4 lg:mx-0 lg:flex-col lg:px-0" aria-label={label}>
       {items.map((it) => {
         const Icon = ICONS[it.icon];
         const active = it.href === "/dashboard" ? path === "/dashboard" : path === it.href || (path.startsWith(it.href + "/") && it.href !== "/dashboard/gigs");

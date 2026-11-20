@@ -4,18 +4,20 @@ import { useRef, useState } from "react";
 import { ImagePlus, Loader2, Trash2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Photo } from "../ui/Photo";
+import { useI18n } from "@/lib/i18n/client";
 
 async function upload(file: File): Promise<string> {
   const fd = new FormData();
   fd.set("file", file);
   const r = await fetch("/api/upload", { method: "POST", body: fd });
   const j = await r.json();
-  if (!r.ok) throw new Error(j.error || "Upload failed");
+  if (!r.ok) throw new Error(j.error || "upload");
   return j.url;
 }
 
 export function ImageField({ name, label, defaultValue, shape = "square", hint }: { name: string; label: string; defaultValue?: string | null; shape?: "square" | "wide"; hint?: string }) {
   const [value, setValue] = useState(defaultValue ?? "");
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const input = useRef<HTMLInputElement>(null);
@@ -51,16 +53,16 @@ export function ImageField({ name, label, defaultValue, shape = "square", hint }
         <div className="space-y-2 text-xs text-muted">
           <div className="flex gap-2">
             <button type="button" onClick={() => input.current?.click()} className="btn-ghost btn-sm" disabled={busy}>
-              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />} Upload
+              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />} {t.dash.upload}
             </button>
             {value && (
-              <button type="button" onClick={() => setValue("")} className="btn-quiet btn-sm" aria-label={`Remove ${label}`}>
+              <button type="button" onClick={() => setValue("")} className="btn-quiet btn-sm" aria-label={t.dash.remove(label)}>
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
-          <p>{hint ?? "JPG, PNG or WEBP up to 5 MB."}</p>
-          {err && <p className="text-rose">{err}</p>}
+          <p>{hint ?? t.dash.uploadHint}</p>
+          {err && <p className="text-rose">{err === "upload" ? t.dash.uploadFailed : err}</p>}
         </div>
       </div>
       <input ref={input} type="file" accept="image/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
@@ -70,6 +72,7 @@ export function ImageField({ name, label, defaultValue, shape = "square", hint }
 
 export function GalleryField({ name, defaultValue }: { name: string; defaultValue: string[] }) {
   const [items, setItems] = useState(defaultValue);
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const input = useRef<HTMLInputElement>(null);
@@ -91,24 +94,24 @@ export function GalleryField({ name, defaultValue }: { name: string; defaultValu
 
   return (
     <div>
-      <span className="label">Performance photos</span>
+      <span className="label">{t.dash.performancePhotos}</span>
       <textarea name={name} value={items.join("\n")} readOnly hidden />
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
         {items.map((p, i) => (
           <div key={p + i} className="group relative aspect-square overflow-hidden rounded-xl">
-            <Photo src={p} alt={`Photo ${i + 1}`} w={300} label="" className="h-full w-full" />
-            <button type="button" onClick={() => setItems(items.filter((_, j) => j !== i))} className="absolute right-1 top-1 rounded-full bg-ink/80 p-1.5 opacity-0 transition group-hover:opacity-100" aria-label="Remove photo">
+            <Photo src={p} alt={t.dash.photoN(i + 1)} w={300} label="" className="h-full w-full" />
+            <button type="button" onClick={() => setItems(items.filter((_, j) => j !== i))} className="absolute right-1 top-1 rounded-full bg-ink/80 p-1.5 opacity-0 transition group-hover:opacity-100" aria-label={t.dash.removePhoto}>
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
         ))}
         {items.length < 12 && (
-          <button type="button" onClick={() => input.current?.click()} className="grid aspect-square place-items-center rounded-xl border border-dashed border-line-strong text-dim hover:text-fg">
+          <button type="button" onClick={() => input.current?.click()} aria-label={t.dash.addPhotos} className="grid aspect-square place-items-center rounded-xl border border-dashed border-line-strong text-dim hover:text-fg">
             {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
           </button>
         )}
       </div>
-      {err && <p className="mt-2 text-xs text-rose">{err}</p>}
+      {err && <p className="mt-2 text-xs text-rose">{err === "upload" ? t.dash.uploadFailed : err}</p>}
       <input ref={input} type="file" accept="image/*" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} />
     </div>
   );

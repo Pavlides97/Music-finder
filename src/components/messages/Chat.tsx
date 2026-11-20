@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, CalendarDays, Check, Clock, Euro, MapPin, Send, Sparkles, X, Repeat2, Ban, Flag } from "lucide-react";
 import { bookingAction, sendMessageAction } from "@/app/actions";
 import type { Booking, Message } from "@/lib/data";
-import { cn, euro, fmtDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/client";
+import { locale } from "@/lib/i18n/core";
 import { Photo } from "../ui/Photo";
 import { StatusPill } from "../ui/StatusPill";
 
@@ -20,6 +22,7 @@ type Props = {
 
 export function Chat({ conversationId, me, other, initialMessages, initialBookings }: Props) {
   const [messages, setMessages] = useState(initialMessages);
+  const { t, d } = useI18n();
   const [bookings, setBookings] = useState(initialBookings);
   const [text, setText] = useState("");
   const [sending, startSend] = useTransition();
@@ -66,7 +69,7 @@ export function Chat({ conversationId, me, other, initialMessages, initialBookin
     <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-line px-4 py-3">
-        <Link href="/messages" className="btn-quiet -ml-2 px-2 md:hidden" aria-label="Back to conversations">
+        <Link href="/messages" className="btn-quiet -ml-2 px-2 md:hidden" aria-label={t.msg.back}>
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <Photo src={other.avatar} alt={other.name} w={100} className="h-10 w-10 rounded-full" />
@@ -75,7 +78,7 @@ export function Chat({ conversationId, me, other, initialMessages, initialBookin
           <p className="truncate text-xs text-muted">{other.sub}</p>
         </div>
         {me.role === "business" && (
-          <Link href={other.href} className="btn-primary btn-sm">New booking</Link>
+          <Link href={other.href} className="btn-primary btn-sm">{t.msg.newBooking}</Link>
         )}
       </div>
 
@@ -99,7 +102,7 @@ export function Chat({ conversationId, me, other, initialMessages, initialBookin
           const showDay = !prev || prev.created_at.slice(0, 10) !== m.created_at.slice(0, 10);
           return (
             <div key={m.id}>
-              {showDay && <p className="my-4 text-center text-[11px] font-medium uppercase tracking-wider text-dim">{fmtDate(m.created_at.slice(0, 10), { weekday: "long", day: "numeric", month: "short" })}</p>}
+              {showDay && <p className="my-4 text-center text-[11px] font-medium uppercase tracking-wider text-dim">{d(m.created_at.slice(0, 10), { weekday: "long", day: "numeric", month: "short" })}</p>}
               {m.kind === "text" ? (
                 <Bubble mine={m.sender_user_id === me.userId} body={m.body} time={m.created_at} />
               ) : (
@@ -122,11 +125,11 @@ export function Chat({ conversationId, me, other, initialMessages, initialBookin
             }
           }}
           rows={1}
-          placeholder={`Message ${other.name}…`}
+          placeholder={t.msg.placeholder(other.name)}
           className="input max-h-40 min-h-[46px] flex-1 resize-none rounded-2xl"
-          aria-label="Message"
+          aria-label={t.msg.message}
         />
-        <button className="btn-primary h-[46px] w-[46px] shrink-0 p-0" disabled={sending || !text.trim()} aria-label="Send">
+        <button className="btn-primary h-[46px] w-[46px] shrink-0 p-0" disabled={sending || !text.trim()} aria-label={t.msg.send}>
           <Send className="h-5 w-5" />
         </button>
       </form>
@@ -135,7 +138,8 @@ export function Chat({ conversationId, me, other, initialMessages, initialBookin
 }
 
 function Bubble({ mine, body, time }: { mine: boolean; body: string; time: string }) {
-  const t = new Date(time.replace(" ", "T") + "Z").toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  const { lang } = useI18n();
+  const t = new Date(time.replace(" ", "T") + "Z").toLocaleTimeString(locale(lang), { hour: "2-digit", minute: "2-digit" });
   return (
     <div className={cn("flex", mine ? "justify-end" : "justify-start")}>
       <div className={cn("max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed", mine ? "rounded-br-md bg-flame text-ink" : "rounded-bl-md bg-surface-3 text-fg")}>
@@ -147,11 +151,12 @@ function Bubble({ mine, body, time }: { mine: boolean; body: string; time: strin
 }
 
 function SystemLine({ m, booking }: { m: Message; booking?: Booking }) {
+  const { msg } = useI18n();
   return (
     <div className="flex justify-center">
       <div className={cn("flex max-w-[90%] items-center gap-2 rounded-full border px-4 py-1.5 text-xs", m.kind === "booking" ? "border-violet/30 bg-violet/10 text-violet-2" : "border-line bg-white/[0.03] text-muted")}>
         {m.kind === "booking" ? <CalendarDays className="h-3.5 w-3.5 shrink-0" /> : <Sparkles className="h-3.5 w-3.5 shrink-0" />}
-        <span>{m.body}</span>
+        <span>{msg(m.body)}</span>
         {booking && <span className="hidden text-dim sm:inline">· #{booking.id}</span>}
       </div>
     </div>
@@ -163,6 +168,7 @@ export function BookingCard({ b, role, onDone }: { b: Booking; role: "musician" 
   const [price, setPrice] = useState(String(b.price));
   const [pending, start] = useTransition();
   const router = useRouter();
+  const { t, eur, d } = useI18n();
   const myTurn = b.last_action_by !== role;
   const open = b.status === "pending" || b.status === "countered";
   const past = b.event_date <= new Date().toISOString().slice(0, 10);
@@ -184,40 +190,40 @@ export function BookingCard({ b, role, onDone }: { b: Booking; role: "musician" 
     <div className={cn("w-[300px] shrink-0 rounded-2xl border bg-surface p-4", b.status === "confirmed" ? "border-lime/30" : "border-violet/30")}>
       <div className="flex items-center justify-between">
         <StatusPill status={b.status} />
-        <span className="display text-xl font-bold">{euro(b.price)}</span>
+        <span className="display text-xl font-bold">{eur(b.price)}</span>
       </div>
       <div className="mt-3 space-y-1 text-xs text-muted">
-        <p className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-flame" /> {fmtDate(b.event_date, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</p>
+        <p className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-flame" /> {d(b.event_date, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</p>
         <p className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-flame" /> {b.start_time}{b.end_time ? `–${b.end_time}` : ""} · {b.event_type}</p>
         <p className="flex items-center gap-1.5 truncate"><MapPin className="h-3.5 w-3.5 shrink-0 text-flame" /> <span className="truncate">{b.venue}</span></p>
       </div>
-      {open && !myTurn && <p className="mt-3 text-[11px] text-dim">Waiting for {role === "musician" ? "the venue" : "the musician"} to respond…</p>}
+      {open && !myTurn && <p className="mt-3 text-[11px] text-dim">{role === "musician" ? t.msg.waitingVenue : t.msg.waitingMusician}</p>}
       {counter ? (
         <div className="mt-3 flex gap-2">
           <div className="relative flex-1">
             <Euro className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
-            <input type="number" min={1} value={price} onChange={(e) => setPrice(e.target.value)} className="input py-1.5 pl-7 text-sm" aria-label="Counter-offer price" />
+            <input type="number" min={1} value={price} onChange={(e) => setPrice(e.target.value)} className="input py-1.5 pl-7 text-sm" aria-label={t.msg.counterPrice} />
           </div>
-          <button disabled={pending} onClick={() => act("counter", { price })} className="btn-violet btn-sm">Send</button>
-          <button onClick={() => setCounter(false)} className="btn-quiet btn-sm" aria-label="Cancel"><X className="h-4 w-4" /></button>
+          <button disabled={pending} onClick={() => act("counter", { price })} className="btn-violet btn-sm">{t.msg.send}</button>
+          <button onClick={() => setCounter(false)} className="btn-quiet btn-sm" aria-label={t.common.cancel}><X className="h-4 w-4" /></button>
         </div>
       ) : (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {open && myTurn && (
             <>
-              <button disabled={pending} onClick={() => act("accept")} className="btn btn-sm bg-lime text-ink hover:bg-lime/90"><Check className="h-3.5 w-3.5" /> Accept</button>
-              <button disabled={pending} onClick={() => setCounter(true)} className="btn-ghost btn-sm"><Repeat2 className="h-3.5 w-3.5" /> Counter</button>
-              <button disabled={pending} onClick={() => act("decline")} className="btn-quiet btn-sm text-rose"><X className="h-3.5 w-3.5" /> Decline</button>
+              <button disabled={pending} onClick={() => act("accept")} className="btn btn-sm bg-lime text-ink hover:bg-lime/90"><Check className="h-3.5 w-3.5" /> {t.msg.accept}</button>
+              <button disabled={pending} onClick={() => setCounter(true)} className="btn-ghost btn-sm"><Repeat2 className="h-3.5 w-3.5" /> {t.msg.counter}</button>
+              <button disabled={pending} onClick={() => act("decline")} className="btn-quiet btn-sm text-rose"><X className="h-3.5 w-3.5" /> {t.msg.decline}</button>
             </>
           )}
           {open && !myTurn && (
-            <button disabled={pending} onClick={() => act("cancel")} className="btn-quiet btn-sm"><Ban className="h-3.5 w-3.5" /> Withdraw</button>
+            <button disabled={pending} onClick={() => act("cancel")} className="btn-quiet btn-sm"><Ban className="h-3.5 w-3.5" /> {t.msg.withdraw}</button>
           )}
           {b.status === "confirmed" && role === "business" && past && (
-            <button disabled={pending} onClick={() => act("complete")} className="btn btn-sm bg-sky-400 text-ink"><Flag className="h-3.5 w-3.5" /> Mark completed</button>
+            <button disabled={pending} onClick={() => act("complete")} className="btn btn-sm bg-sky-400 text-ink"><Flag className="h-3.5 w-3.5" /> {t.msg.markCompleted}</button>
           )}
           {b.status === "confirmed" && !past && (
-            <button disabled={pending} onClick={() => confirm("Cancel this confirmed booking?") && act("cancel")} className="btn-quiet btn-sm text-muted"><Ban className="h-3.5 w-3.5" /> Cancel booking</button>
+            <button disabled={pending} onClick={() => confirm(t.msg.confirmCancel) && act("cancel")} className="btn-quiet btn-sm text-muted"><Ban className="h-3.5 w-3.5" /> {t.msg.cancelBooking}</button>
           )}
         </div>
       )}

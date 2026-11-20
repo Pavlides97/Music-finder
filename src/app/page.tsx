@@ -6,10 +6,12 @@ import { GigCard, MusicianCard } from "@/components/cards";
 import { Tilt } from "@/components/ui/Tilt";
 import { featuredMusicians, genreCounts, platformStats, upcomingGigs } from "@/lib/data";
 import { CATEGORY_TILES } from "@/lib/constants";
+import { getI18n } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
+export default async function Home() {
+  const { t, L } = await getI18n();
   const featured = featuredMusicians(8);
   const gigs = upcomingGigs(3);
   const stats = platformStats();
@@ -28,22 +30,26 @@ export default function Home() {
         <div className="container-x grid items-center gap-6 pb-12 pt-10 sm:pt-16 lg:grid-cols-[1.1fr_1fr] lg:gap-10 lg:pb-16">
           <div className="relative z-10 order-2 lg:order-1">
             <span className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold text-muted">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-lime" /> {stats.musicians} artists · {stats.openGigs} open gigs across Cyprus
+              <span className="h-2 w-2 animate-pulse rounded-full bg-lime" /> {t.home.badge(stats.musicians, stats.openGigs)}
             </span>
             <h1 className="display mt-6 text-[clamp(2.75rem,7.5vw,5.75rem)] font-extrabold leading-[0.95]">
-              Where Cyprus
+              {t.home.title1}
               <br />
-              finds its <span className="text-gradient">sound.</span>
+              {t.home.title2} <span className="text-gradient">{t.home.title3}</span>
             </h1>
-            <p className="mt-6 max-w-lg text-lg text-muted sm:text-xl">Discover musicians. Find gigs. Create unforgettable experiences.</p>
+            <p className="mt-6 max-w-lg text-lg text-muted sm:text-xl">{t.home.subtitle}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/musicians" className="btn-primary btn-lg">
-                <Headphones className="h-5 w-5" /> Find Musicians
+                <Headphones className="h-5 w-5" /> {t.common.findMusicians}
               </Link>
               <Link href="/gigs" className="btn-ghost btn-lg">
-                <Mic2 className="h-5 w-5" /> Find Gigs
+                <Mic2 className="h-5 w-5" /> {t.common.findGigs}
               </Link>
             </div>
+            <Link href="/match" className="group mt-5 inline-flex items-center gap-2 text-sm font-semibold text-flame-2 hover:text-flame">
+              <Sparkles className="h-4 w-4" /> {t.home.matchCta}
+              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+            </Link>
           </div>
           <HeroScene className="relative order-1 mx-auto aspect-square w-full max-w-[300px] sm:max-w-[420px] lg:order-2 lg:max-w-[560px]" />
         </div>
@@ -55,7 +61,7 @@ export default function Home() {
 
       {/* ---------------- FEATURED ---------------- */}
       <section className="container-x py-20">
-        <SectionHead eyebrow="Featured artists" title="Voices of the island" href="/musicians" cta="All musicians" />
+        <SectionHead eyebrow={t.home.featuredEyebrow} title={t.home.featuredTitle} href="/musicians" cta={t.home.allMusicians} />
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {featured.map((m, i) => (
             <MusicianCard key={m.id} m={m} priority={i < 4} />
@@ -65,7 +71,7 @@ export default function Home() {
 
       {/* ---------------- GENRES ---------------- */}
       <section className="container-x pb-20">
-        <SectionHead eyebrow="Browse by genre" title="Find the right sound" />
+        <SectionHead eyebrow={t.home.genresEyebrow} title={t.home.genresTitle} />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {CATEGORY_TILES.map((c) => (
             <Tilt key={c.genre} className="rounded-2xl" max={10}>
@@ -75,9 +81,9 @@ export default function Home() {
                   style={{ "--orb-a": `hsl(${c.hue} 85% 60%)`, "--orb-b": `hsl(${(c.hue + 35) % 360} 70% 30%)`, "--orb-glow": `hsl(${c.hue} 90% 55% / .35)` } as React.CSSProperties}
                 />
                 <span className="min-w-0">
-                  <span className="display block truncate text-lg font-bold">{c.genre}</span>
-                  <span className="hidden truncate text-xs text-muted sm:block">{c.blurb}</span>
-                  <span className="block text-xs font-semibold text-flame">{counts[c.genre] ?? 0} artists</span>
+                  <span className="display block truncate text-lg font-bold">{L(c.genre)}</span>
+                  <span className="hidden truncate text-xs text-muted sm:block">{(t.genreBlurb as Record<string, string>)[c.genre] ?? ""}</span>
+                  <span className="block text-xs font-semibold text-flame">{t.common.artists(counts[c.genre] ?? 0)}</span>
                 </span>
               </Link>
             </Tilt>
@@ -87,7 +93,7 @@ export default function Home() {
 
       {/* ---------------- GIGS ---------------- */}
       <section className="container-x pb-20">
-        <SectionHead eyebrow="Gig marketplace" title="Open opportunities" href="/gigs" cta="All gigs" />
+        <SectionHead eyebrow={t.home.gigsEyebrow} title={t.home.gigsTitle} href="/gigs" cta={t.home.allGigs} />
         <div className="grid gap-6 md:grid-cols-3">
           {gigs.map((g) => (
             <GigCard key={g.id} g={g} compact />
@@ -98,31 +104,31 @@ export default function Home() {
       {/* ---------------- HOW IT WORKS ---------------- */}
       <section id="how-it-works" className="container-x scroll-mt-20 pb-20">
         <div className="mx-auto mb-12 max-w-2xl text-center">
-          <p className="eyebrow">How it works</p>
-          <h2 className="display mt-3 text-4xl font-extrabold sm:text-5xl">Three steps to the stage</h2>
+          <p className="eyebrow">{t.home.howEyebrow}</p>
+          <h2 className="display mt-3 text-4xl font-extrabold sm:text-5xl">{t.home.howTitle}</h2>
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
           <HowColumn
             tone="flame"
             icon={<Store className="h-6 w-6" />}
-            title="For venues & organisers"
+            title={t.home.forVenues}
             steps={[
-              [Search, "Search", "Filter by city, genre, budget and date."],
-              [MessageCircle, "Request", "Send your date and offer, then agree the price in chat."],
-              [CalendarCheck, "Confirm", "Confirmed bookings land in your dashboard."],
+              [Search, t.home.v1t, t.home.v1d],
+              [MessageCircle, t.home.v2t, t.home.v2d],
+              [CalendarCheck, t.home.v3t, t.home.v3d],
             ]}
-            cta={{ href: "/signup?role=business", label: "Create a venue profile" }}
+            cta={{ href: "/signup?role=business", label: t.home.createVenue }}
           />
           <HowColumn
             tone="violet"
             icon={<Mic2 className="h-6 w-6" />}
-            title="For musicians"
+            title={t.home.forMusicians}
             steps={[
-              [UserRoundPlus, "Create", "Photos, samples, prices and availability in minutes."],
-              [Sparkles, "Get found", "Venues find you in search. Apply to open gigs."],
-              [Wallet, "Get booked", "Accept, counter-offer and fill your calendar."],
+              [UserRoundPlus, t.home.m1t, t.home.m1d],
+              [Sparkles, t.home.m2t, t.home.m2d],
+              [Wallet, t.home.m3t, t.home.m3d],
             ]}
-            cta={{ href: "/signup?role=musician", label: "Create an artist profile" }}
+            cta={{ href: "/signup?role=musician", label: t.home.createArtist }}
           />
         </div>
       </section>
@@ -132,14 +138,14 @@ export default function Home() {
         <div className="relative isolate overflow-hidden rounded-3xl border border-line-strong px-8 py-14 text-center sm:px-14 sm:py-20">
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(80%_120%_at_0%_0%,rgb(255_122_26/0.35),transparent_60%),radial-gradient(80%_120%_at_100%_100%,rgb(139_92_246/0.4),transparent_60%),#10121c]" />
           <div className="perspective-grid absolute inset-x-0 bottom-0 -z-10 h-2/3 opacity-50" />
-          <h2 className="display mx-auto max-w-2xl text-4xl font-extrabold leading-tight sm:text-5xl">Ready to make some noise?</h2>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-muted">Join the musicians and venues building Cyprus&apos;s live music scene. Free to join.</p>
+          <h2 className="display mx-auto max-w-2xl text-4xl font-extrabold leading-tight sm:text-5xl">{t.home.ctaTitle}</h2>
+          <p className="mx-auto mt-4 max-w-xl text-lg text-muted">{t.home.ctaText}</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link href="/signup?role=musician" className="btn-primary btn-lg">
-              I&apos;m a musician <ArrowRight className="h-5 w-5" />
+              {t.home.imMusician} <ArrowRight className="h-5 w-5" />
             </Link>
             <Link href="/signup?role=business" className="btn-ghost btn-lg">
-              I&apos;m booking music <ArrowRight className="h-5 w-5" />
+              {t.home.imBooking} <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
         </div>

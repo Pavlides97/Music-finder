@@ -21,19 +21,20 @@ import {
 import { getViewer } from "@/lib/auth";
 import { getBusyDates, getMusicianBySlug, getReviews, isSaved, similarMusicians } from "@/lib/data";
 import { toEmbed } from "@/lib/embed";
-import { euro, priceRange, timeAgo } from "@/lib/utils";
 import { Photo } from "@/components/ui/Photo";
 import { RatingBadge, Stars } from "@/components/ui/Stars";
 import { AudioPlayer } from "@/components/profile/AudioPlayer";
 import { BookingPanel } from "@/components/profile/BookingPanel";
 import { MusicianCard } from "@/components/cards";
 import { startConversationAction, toggleSaveAction } from "@/app/actions";
+import { getI18n } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const m = getMusicianBySlug((await params).slug);
-  return m ? { title: `${m.name} — ${m.performer_type} in ${m.location}`, description: m.tagline } : {};
+  const { t, L } = await getI18n();
+  return m ? { title: t.profile.metaTitle(m.name, L(m.performer_type), L(m.location)), description: [L(m.tagline), ...m.genres.map(L)].filter(Boolean).join(" · ") } : {};
 }
 
 export default async function MusicianProfile({ params }: { params: Promise<{ slug: string }> }) {
@@ -41,6 +42,7 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
   const m = getMusicianBySlug(slug);
   if (!m) notFound();
   const v = await getViewer();
+  const { t, L, eur, price, ago } = await getI18n();
   const reviews = getReviews(m.id);
   const { blocked, booked } = getBusyDates(m.id);
   const similar = similarMusicians(m, 4);
@@ -53,7 +55,7 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
     <div>
       {/* Cover */}
       <section className="relative h-[280px] sm:h-[380px]">
-        <Photo src={m.cover} alt={`${m.name} performing`} label="" w={1800} className="absolute inset-0" />
+        <Photo src={m.cover} alt={t.profile.performing(m.name)} label="" w={1800} className="absolute inset-0" />
         <div className="absolute inset-0 bg-gradient-to-t from-night via-night/40 to-night/10" />
       </section>
 
@@ -62,23 +64,23 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
           <Photo src={m.avatar} alt={m.name} w={500} className="h-32 w-32 shrink-0 rounded-3xl ring-4 ring-night sm:h-44 sm:w-44" />
           <div className="flex-1 pb-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="chip border-flame/30 bg-flame/10 text-flame">{m.performer_type}</span>
+              <span className="chip border-flame/30 bg-flame/10 text-flame">{L(m.performer_type)}</span>
               {m.verified ? (
-                <span className="chip border-violet/30 bg-violet/10 text-violet-2"><BadgeCheck className="h-3.5 w-3.5" /> Verified</span>
+                <span className="chip border-violet/30 bg-violet/10 text-violet-2"><BadgeCheck className="h-3.5 w-3.5" /> {t.common.verified}</span>
               ) : null}
             </div>
             <h1 className="display mt-3 text-4xl font-extrabold leading-none sm:text-6xl">{m.name}</h1>
-            <p className="mt-3 text-lg text-muted">{m.tagline}</p>
+            <p className="mt-3 text-lg text-muted">{L(m.tagline)}</p>
             <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
-              <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-flame" /> {m.location}, Cyprus</span>
+              <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-flame" /> {t.profile.cyprus(L(m.location))}</span>
               <RatingBadge rating={m.rating} count={m.review_count} />
-              {m.years_active > 0 && <span className="inline-flex items-center gap-1.5"><Mic2 className="h-4 w-4 text-flame" /> {m.years_active}+ years performing</span>}
-              {m.members > 1 && <span className="inline-flex items-center gap-1.5"><Users className="h-4 w-4 text-flame" /> {m.members} members</span>}
+              {m.years_active > 0 && <span className="inline-flex items-center gap-1.5"><Mic2 className="h-4 w-4 text-flame" /> {t.profile.years(m.years_active)}</span>}
+              {m.members > 1 && <span className="inline-flex items-center gap-1.5"><Users className="h-4 w-4 text-flame" /> {t.profile.members(m.members)}</span>}
             </div>
           </div>
           {isOwner && (
             <Link href="/dashboard/profile" className="btn-ghost self-start sm:self-end">
-              <Pencil className="h-4 w-4" /> Edit profile
+              <Pencil className="h-4 w-4" /> {t.profile.editProfile}
             </Link>
           )}
         </div>
@@ -88,71 +90,71 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
           <div className="min-w-0 space-y-12">
             <div className="flex flex-wrap gap-2">
               {m.genres.map((g) => (
-                <Link key={g} href={`/musicians?genre=${encodeURIComponent(g)}`} className="chip px-3 py-1.5 text-sm hover:border-flame/40 hover:text-fg">{g}</Link>
+                <Link key={g} href={`/musicians?genre=${encodeURIComponent(g)}`} className="chip px-3 py-1.5 text-sm hover:border-flame/40 hover:text-fg">{L(g)}</Link>
               ))}
             </div>
 
-            <Section title="About">
-              <div className="space-y-4 whitespace-pre-line text-[15px] leading-relaxed text-fg/85">{m.bio || "This artist hasn't written a bio yet."}</div>
+            <Section title={t.profile.about}>
+              <div className="space-y-4 whitespace-pre-line text-[15px] leading-relaxed text-fg/85">{m.bio || t.profile.noBio}</div>
               {m.experience && (
                 <div className="mt-6 rounded-2xl border border-line bg-surface p-5">
-                  <p className="label">Experience & highlights</p>
+                  <p className="label">{t.profile.experience}</p>
                   <p className="text-sm leading-relaxed text-fg/85">{m.experience}</p>
                 </div>
               )}
             </Section>
 
             {m.tracks.length > 0 && (
-              <Section title="Listen">
+              <Section title={t.profile.listen}>
                 <AudioPlayer tracks={m.tracks} artist={m.name} />
               </Section>
             )}
 
             {embeds.length > 0 && (
-              <Section title="Watch & stream">
+              <Section title={t.profile.watch}>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {embeds.map((e, i) => (
                     <div key={i} className={e.kind === "youtube" ? "aspect-video overflow-hidden rounded-2xl border border-line" : "h-[152px] overflow-hidden rounded-2xl"}>
-                      <iframe src={e.src} title={`${m.name} media ${i + 1}`} className="h-full w-full" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowFullScreen />
+                      <iframe src={e.src} title={t.profile.media(m.name, i + 1)} className="h-full w-full" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowFullScreen />
                     </div>
                   ))}
                 </div>
               </Section>
             )}
 
-            <Section title="Performances offered">
+            <Section title={t.profile.performances}>
               <div className="grid gap-3 sm:grid-cols-2">
                 {m.performances.map((p) => (
                   <div key={p} className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-lime" />
-                    <span className="text-sm">{p}</span>
+                    <span className="text-sm">{L(p)}</span>
                   </div>
                 ))}
               </div>
               <div className="mt-5 flex flex-wrap gap-2">
-                <span className="text-sm text-muted">Perfect for:</span>
-                {m.event_types.map((e) => <span key={e} className="chip">{e}</span>)}
+                <span className="text-sm text-muted">{t.profile.perfectFor}</span>
+                {m.event_types.map((e) => <span key={e} className="chip">{L(e)}</span>)}
               </div>
             </Section>
 
             {m.photos.length > 0 && (
-              <Section title="Gallery">
+              <Section title={t.profile.gallery}>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {m.photos.map((p, i) => (
-                    <Photo key={i} src={p} alt={`${m.name} photo ${i + 1}`} w={700} label="" className={`rounded-2xl ${i === 0 ? "col-span-2 row-span-2 aspect-square sm:aspect-auto sm:h-full" : "aspect-square"}`} imgClassName="transition duration-500 hover:scale-105" />
+                    <Photo key={i} src={p} alt={t.profile.photo(m.name, i + 1)} w={700} label="" className={`rounded-2xl ${i === 0 ? "col-span-2 row-span-2 aspect-square sm:aspect-auto sm:h-full" : "aspect-square"}`} imgClassName="transition duration-500 hover:scale-105" />
                   ))}
                 </div>
               </Section>
             )}
 
-            <Section title="Reviews" id="reviews">
+            <Section title={t.profile.reviews} id="reviews">
               {reviews.length ? (
                 <>
                   <div className="mb-6 flex flex-col gap-6 rounded-2xl border border-line bg-surface p-6 sm:flex-row sm:items-center">
                     <div className="text-center sm:w-40">
                       <p className="display text-5xl font-extrabold">{m.rating.toFixed(1)}</p>
                       <Stars value={m.rating} size={16} className="mt-1" />
-                      <p className="mt-1 text-xs text-muted">{m.review_count} reviews</p>
+                      <p className="mt-1 text-xs text-muted">{t.profile.reviewCount(m.review_count)}</p>
                     </div>
                     <div className="flex-1 space-y-1.5">
                       {dist.map((n, i) => (
@@ -178,19 +180,19 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
                               ) : (
                                 <p className="text-sm font-semibold">{r.author_name}</p>
                               )}
-                              <p className="text-xs text-muted">{r.event_type} · {timeAgo(r.created_at)}</p>
+                              <p className="text-xs text-muted">{r.event_type ? L(r.event_type) + " · " : ""}{ago(r.created_at)}</p>
                             </div>
                           </div>
                           <Stars value={r.rating} />
                         </div>
                         <p className="mt-3 text-sm leading-relaxed text-fg/85">{r.body}</p>
-                        {r.business_slug && <p className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-lime"><BadgeCheck className="h-3 w-3" /> Verified booking</p>}
+                        {r.business_slug && <p className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-lime"><BadgeCheck className="h-3 w-3" /> {t.profile.verifiedBooking}</p>}
                       </article>
                     ))}
                   </div>
                 </>
               ) : (
-                <p className="text-muted">No reviews yet — be the first to book {m.name}.</p>
+                <p className="text-muted">{t.profile.noReviews(m.name)}</p>
               )}
             </Section>
           </div>
@@ -200,26 +202,26 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
             <div className="card p-6">
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-xs text-muted">Price per event</p>
-                  <p className="display text-3xl font-extrabold">{priceRange(m.price_from, m.price_to) ?? "On request"}</p>
+                  <p className="text-xs text-muted">{t.profile.pricePerEvent}</p>
+                  <p className="display text-3xl font-extrabold">{price(m.price_from, m.price_to) ?? t.common.onRequest}</p>
                 </div>
                 {m.hourly_rate ? (
                   <div className="text-right">
-                    <p className="text-xs text-muted">Hourly</p>
-                    <p className="text-lg font-semibold">{euro(m.hourly_rate)}/h</p>
+                    <p className="text-xs text-muted">{t.profile.hourly}</p>
+                    <p className="text-lg font-semibold">{eur(m.hourly_rate)}{t.profile.perHour}</p>
                   </div>
                 ) : null}
               </div>
               {m.response_hours > 0 && (
                 <div className="mt-4 flex items-center gap-2 rounded-xl bg-lime/[0.07] px-3 py-2 text-xs text-lime">
-                  <Clock className="h-3.5 w-3.5" /> Usually responds within {m.response_hours < 24 ? `${m.response_hours} hour${m.response_hours > 1 ? "s" : ""}` : `${Math.round(m.response_hours / 24)} day(s)`}
+                  <Clock className="h-3.5 w-3.5" /> {m.response_hours < 24 ? t.profile.respondsHours(m.response_hours) : t.profile.respondsDays(Math.round(m.response_hours / 24))}
                 </div>
               )}
               <div className="my-6 h-px bg-line" />
               {isOwner ? (
                 <div className="space-y-3 text-sm text-muted">
-                  <p>This is how venues see your profile.</p>
-                  <Link href="/dashboard/availability" className="btn-primary w-full">Manage availability</Link>
+                  <p>{t.profile.ownerNote}</p>
+                  <Link href="/dashboard/availability" className="btn-primary w-full">{t.profile.manageAvailability}</Link>
                 </div>
               ) : (
                 <>
@@ -235,13 +237,13 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
                       <input type="hidden" name="musician_id" value={m.id} />
                       <input type="hidden" name="target" value={`/musicians/${m.slug}`} />
                       <button className="btn-ghost w-full" disabled={v?.role === "musician"}>
-                        <MessageCircle className="h-4 w-4" /> Message
+                        <MessageCircle className="h-4 w-4" /> {t.profile.message}
                       </button>
                     </form>
                     <form action={toggleSaveAction}>
                       <input type="hidden" name="musician_id" value={m.id} />
                       <button className={`btn-ghost w-full ${saved ? "border-flame/40 text-flame" : ""}`} disabled={v?.role === "musician"}>
-                        {saved ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />} {saved ? "Saved" : "Save"}
+                        {saved ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />} {saved ? t.common.saved : t.common.save}
                       </button>
                     </form>
                   </div>
@@ -250,8 +252,8 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
             </div>
 
             <div className="card mt-4 space-y-3 p-6 text-sm">
-              <p className="label">Details & contact</p>
-              {m.languages.length > 0 && <Row icon={<Languages className="h-4 w-4" />}>{m.languages.join(", ")}</Row>}
+              <p className="label">{t.profile.details}</p>
+              {m.languages.length > 0 && <Row icon={<Languages className="h-4 w-4" />}>{m.languages.map(L).join(", ")}</Row>}
               {v ? (
                 <>
                   {m.phone && <Row icon={<Phone className="h-4 w-4" />}><a href={`tel:${m.phone}`} className="hover:text-flame">{m.phone}</a></Row>}
@@ -261,7 +263,7 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
                 </>
               ) : (
                 <p className="rounded-xl bg-white/[0.04] p-3 text-xs text-muted">
-                  <Link href={`/login?next=/musicians/${m.slug}`} className="font-semibold text-flame">Log in</Link> to see phone and email. Messaging on SoundCY keeps your booking history in one place.
+                  <Link href={`/login?next=/musicians/${m.slug}`} className="font-semibold text-flame">{t.common.logIn}</Link> {t.profile.loginToSee}
                 </p>
               )}
             </div>
@@ -270,7 +272,7 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
 
         {similar.length > 0 && (
           <section className="mt-20">
-            <h2 className="display mb-6 text-2xl font-bold">You might also like</h2>
+            <h2 className="display mb-6 text-2xl font-bold">{t.profile.similar}</h2>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {similar.map((s) => <MusicianCard key={s.id} m={s} />)}
             </div>

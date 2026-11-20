@@ -24,14 +24,14 @@ export function Stat({ label, value, hint, tone = "flame" }: { label: string; va
   );
 }
 
-export function Panel({ title, href, cta, children }: { title: string; href?: string; cta?: string; children: React.ReactNode }) {
+export function Panel({ title, href, cta, viewAll, children }: { title: string; href?: string; cta?: string; viewAll?: string; children: React.ReactNode }) {
   return (
     <section className="card p-5 sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-bold">{title}</h2>
         {href && (
           <Link href={href} className="inline-flex items-center gap-1 text-xs font-semibold text-flame hover:underline">
-            {cta ?? "View all"} <ArrowRight className="h-3 w-3" />
+            {cta ?? viewAll ?? "View all"} <ArrowRight className="h-3 w-3" />
           </Link>
         )}
       </div>
