@@ -85,7 +85,7 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
           )}
         </div>
 
-        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_380px]">
+        <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_380px]">
           {/* Main */}
           <div className="min-w-0 space-y-12">
             <div className="flex flex-wrap gap-2">
@@ -112,7 +112,7 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
 
             {embeds.length > 0 && (
               <Section title={t.profile.watch}>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {embeds.map((e, i) => (
                     <div key={i} className={e.kind === "youtube" ? "aspect-video overflow-hidden rounded-2xl border border-line" : "h-[152px] overflow-hidden rounded-2xl"}>
                       <iframe src={e.src} title={t.profile.media(m.name, i + 1)} className="h-full w-full" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowFullScreen />
@@ -123,7 +123,7 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
             )}
 
             <Section title={t.profile.performances}>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {m.performances.map((p) => (
                   <div key={p} className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-lime" />
@@ -131,10 +131,12 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
                   </div>
                 ))}
               </div>
-              <div className="mt-5 flex flex-wrap gap-2">
-                <span className="text-sm text-muted">{t.profile.perfectFor}</span>
-                {m.event_types.map((e) => <span key={e} className="chip">{L(e)}</span>)}
-              </div>
+              {m.event_types.length > 0 && (
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <span className="text-sm text-muted">{t.profile.perfectFor}</span>
+                  {m.event_types.map((e) => <span key={e} className="chip">{L(e)}</span>)}
+                </div>
+              )}
             </Section>
 
             {m.photos.length > 0 && (

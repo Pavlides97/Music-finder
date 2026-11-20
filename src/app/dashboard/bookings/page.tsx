@@ -30,7 +30,7 @@ export default async function BookingsPage() {
     <section>
       <h2 className="mb-3 flex items-center gap-2 font-bold">{title} <span className="text-sm font-normal text-muted">({items.length})</span></h2>
       {items.length ? (
-        <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">{items.map((b) => <BookingCard key={b.id} b={b} role={v.role} />)}</div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3">{items.map((b) => <BookingCard key={b.id} b={b} role={v.role} />)}</div>
       ) : (
         <Empty>{emptyText}</Empty>
       )}

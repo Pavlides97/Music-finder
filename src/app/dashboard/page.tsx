@@ -64,7 +64,7 @@ export default async function DashboardHome() {
             <div className="mb-4 h-2 overflow-hidden rounded-full bg-white/10">
               <div className="h-full rounded-full bg-brand" style={{ width: `${(done / checklist.length) * 100}%` }} />
             </div>
-            <ul className="grid gap-2 sm:grid-cols-2">
+            <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {checklist.map((c) => (
                 <li key={c.label} className={`flex items-center gap-2 text-sm ${c.done ? "text-muted line-through" : ""}`}>
                   {c.done ? <CheckCircle2 className="h-4 w-4 text-lime" /> : <Circle className="h-4 w-4 text-dim" />} {c.label}
@@ -82,7 +82,7 @@ export default async function DashboardHome() {
           )}
         </Panel>
 
-        <div className="grid gap-6 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
           <Panel title={t.dash.upcomingPerformances} href="/dashboard/bookings" viewAll={t.common.viewAll}>
             <BookingList items={upcoming.slice(0, 5)} role="musician" empty={t.dash.noConfirmedGigs} i18n={i18n} />
           </Panel>
@@ -107,7 +107,7 @@ export default async function DashboardHome() {
 
         <section>
           <h2 className="mb-4 font-bold">{t.dash.matchingGigs}</h2>
-          <div className="grid gap-4 md:grid-cols-2">{recommended.map((g) => <GigCard key={g.id} g={g} compact />)}</div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{recommended.map((g) => <GigCard key={g.id} g={g} compact />)}</div>
         </section>
       </div>
     );
@@ -144,7 +144,7 @@ export default async function DashboardHome() {
         )}
       </Panel>
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <Panel title={t.dash.confirmedEvents} href="/dashboard/bookings" viewAll={t.common.viewAll}>
           <BookingList items={upcoming.slice(0, 5)} role="business" empty={t.dash.noConfirmedEvents} i18n={i18n} />
         </Panel>

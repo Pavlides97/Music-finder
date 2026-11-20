@@ -81,7 +81,7 @@ export default async function MatchPage({ searchParams }: { searchParams: SP }) 
               </div>
             </div>
 
-            <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
               {results.map((r, i) => (
                 <Tilt key={r.m.id} className="h-full rounded-3xl" max={5}>
                   <article className={cn("elevated relative flex h-full flex-col overflow-hidden rounded-3xl border p-5", i === 0 ? "border-flame/50" : "border-line")}>

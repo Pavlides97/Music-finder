@@ -20,7 +20,7 @@ export function GigForm({ defaults }: { defaults: { location: string; venue: str
           <span className="label">{t.dash.gigTitle}</span>
           <input name="title" required className="input" placeholder={t.dash.gigTitlePh} />
         </label>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <label className="block">
             <span className="label">{t.common.date}</span>
             <input name="event_date" type="date" required min={today} defaultValue={isoDate(addDays(new Date(), 14))} className="input [color-scheme:dark]" />
@@ -63,7 +63,7 @@ export function GigForm({ defaults }: { defaults: { location: string; venue: str
 
       <section className="card space-y-5 p-5 sm:p-6">
         <h2 className="font-bold">{t.dash.step3}</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <label className="block">
             <span className="label">{t.dash.budgetFrom}</span>
             <input name="budget_min" type="number" min={0} defaultValue={defaults.budgetMin ?? ""} className="input" />

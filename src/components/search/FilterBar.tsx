@@ -137,7 +137,7 @@ export function FilterBar({
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="grid gap-4">{controls}</div>
+            <div className="grid grid-cols-1 gap-4">{controls}</div>
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button onClick={clearAll} className="btn-ghost">{t.search.clear}</button>
               <button onClick={() => setOpen(false)} className={cn("btn-primary")}>{t.search.showResults(total)}</button>

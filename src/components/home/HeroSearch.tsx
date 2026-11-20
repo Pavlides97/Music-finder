@@ -33,7 +33,7 @@ export function HeroSearch() {
             key={m}
             type="button"
             onClick={() => setMode(m)}
-            className={cn("rounded-full px-4 py-1.5 text-xs font-semibold transition", mode === m ? "bg-fg text-ink" : "text-muted hover:text-fg")}
+            className={cn("rounded-full px-4 py-2 text-xs font-semibold transition", mode === m ? "bg-fg text-ink" : "text-muted hover:text-fg")}
           >
             {m === "musicians" ? t.home.searchMusicians : t.home.searchGigs}
           </button>
@@ -41,7 +41,7 @@ export function HeroSearch() {
       </div>
       <form
         onSubmit={submit}
-        className="glass grid gap-1 rounded-3xl p-2 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]"
+        className="glass grid grid-cols-1 gap-1 rounded-3xl p-2 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]"
       >
         <label className={field}>
           <MapPin className="h-4 w-4 shrink-0 text-flame" />

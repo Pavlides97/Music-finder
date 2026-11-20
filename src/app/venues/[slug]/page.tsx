@@ -52,7 +52,7 @@ export default async function VenueProfile({ params }: { params: Promise<{ slug:
           ) : null}
         </div>
 
-        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_340px]">
+        <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_340px]">
           <div className="min-w-0 space-y-12">
             <section>
               <h2 className="display mb-4 text-2xl font-bold">{t.profile.about}</h2>
@@ -61,7 +61,7 @@ export default async function VenueProfile({ params }: { params: Promise<{ slug:
             <section>
               <h2 className="display mb-4 text-2xl font-bold">{t.venue.events}</h2>
               {gigs.length ? (
-                <div className="grid gap-5 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   {gigs.map((g) => <GigCard key={g.id} g={g} compact />)}
                 </div>
               ) : (

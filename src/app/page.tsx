@@ -32,7 +32,7 @@ export default async function Home() {
           <div className="perspective-grid absolute inset-x-[-20%] bottom-0 h-[55%] opacity-60" />
         </div>
 
-        <div className="container-x grid items-center gap-6 pb-12 pt-10 sm:pt-16 lg:grid-cols-[1.1fr_1fr] lg:gap-10 lg:pb-16">
+        <div className="container-x grid grid-cols-1 items-center gap-4 pb-12 pt-6 sm:gap-6 sm:pt-16 lg:grid-cols-[1.1fr_1fr] lg:gap-10 lg:pb-16">
           <div className="relative z-10 order-2 lg:order-1">
             <span className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold text-muted">
               <span className="h-2 w-2 animate-pulse rounded-full bg-lime" /> {t.home.badge(stats.musicians, stats.openGigs)}
@@ -56,7 +56,7 @@ export default async function Home() {
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
             </Link>
           </div>
-          <HeroScene className="relative order-1 mx-auto aspect-square w-full max-w-[300px] sm:max-w-[420px] lg:order-2 lg:max-w-[560px]" />
+          <HeroScene className="relative order-1 mx-auto aspect-square w-full max-w-[210px] sm:max-w-[380px] md:max-w-[420px] lg:order-2 lg:max-w-[560px]" />
         </div>
 
         <div className="container-x relative z-10 pb-20">
@@ -104,7 +104,7 @@ export default async function Home() {
       {/* ---------------- GIGS ---------------- */}
       <section className="container-x pb-20">
         <SectionHead eyebrow={t.home.gigsEyebrow} title={t.home.gigsTitle} href="/gigs" cta={t.home.allGigs} />
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {gigs.map((g) => (
             <GigCard key={g.id} g={g} compact />
           ))}
@@ -117,7 +117,7 @@ export default async function Home() {
           <p className="eyebrow">{t.home.howEyebrow}</p>
           <h2 className="display mt-3 text-4xl font-extrabold sm:text-5xl">{t.home.howTitle}</h2>
         </div>
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <HowColumn
             tone="flame"
             icon={<Store className="h-6 w-6" />}
@@ -202,7 +202,7 @@ function HowColumn({
           <span className={`grid h-12 w-12 place-items-center rounded-2xl ring-1 ${accent}`}>{icon}</span>
           <h3 className="display text-2xl font-bold">{title}</h3>
         </div>
-        <ol className="mt-8 grid gap-4 sm:grid-cols-3">
+        <ol className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {steps.map(([Icon, t, d], i) => (
             <li key={t} className="glass rounded-2xl p-4">
               <div className="flex items-center justify-between">

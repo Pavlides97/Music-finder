@@ -26,7 +26,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="container-x py-6">
-      <div className="card grid h-[calc(100dvh-7.5rem)] min-h-[520px] overflow-hidden md:grid-cols-[320px_1fr]">
+      <div className="card grid grid-cols-1 h-[calc(100dvh-7.5rem)] min-h-[520px] overflow-hidden md:grid-cols-[320px_minmax(0,1fr)]">
         {/* List */}
         <aside className={cn("min-h-0 flex-col border-r border-line", thread ? "hidden md:flex" : "flex")}>
           <div className="border-b border-line p-4">

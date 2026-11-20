@@ -36,15 +36,15 @@ export default async function VenuesPage({ searchParams }: { searchParams: Promi
           ))}
         </div>
         <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4">
-          <Link href={href("location")} className={cn("chip shrink-0", !sp.location && "border-violet/40 bg-violet/10 text-violet-2")}>{t.dir.allLocations}</Link>
+          <Link href={href("location")} className={cn("chip shrink-0 px-3.5 py-2 text-sm", !sp.location && "border-violet/40 bg-violet/10 text-violet-2")}>{t.dir.allLocations}</Link>
           {LOCATIONS.map((l) => (
-            <Link key={l} href={href("location", l)} className={cn("chip shrink-0", sp.location === l && "border-violet/40 bg-violet/10 text-violet-2")}>{L(l)}</Link>
+            <Link key={l} href={href("location", l)} className={cn("chip shrink-0 px-3.5 py-2 text-sm", sp.location === l && "border-violet/40 bg-violet/10 text-violet-2")}>{L(l)}</Link>
           ))}
         </div>
       </div>
 
       {venues.length ? (
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {venues.map((b) => <VenueCard key={b.id} b={b} />)}
         </div>
       ) : (

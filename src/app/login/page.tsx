@@ -28,7 +28,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
       <div className="mt-8 rounded-2xl border border-lime/20 bg-lime/[0.04] p-4">
         <p className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-lime"><Sparkles className="h-3.5 w-3.5" /> {t.auth.demo}</p>
-        <div className="grid gap-2">
+        <div className="grid grid-cols-1 gap-2">
           {DEMOS.map((d) => (
             <form key={d.email} action={demoLoginAction}>
               <input type="hidden" name="email" value={d.email} />

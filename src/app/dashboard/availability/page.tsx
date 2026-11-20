@@ -21,7 +21,7 @@ export default async function AvailabilityPage() {
   return (
     <div>
       <PageHead title={t.dash.availability} subtitle={t.dash.availSub} />
-      <div className="grid gap-6 xl:grid-cols-[1fr_300px]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_300px]">
         <div className="card p-5 sm:p-6">
           <AvailabilityCalendar blocked={blocked} booked={booked} editable months={2} />
         </div>

@@ -30,7 +30,7 @@ export function Panel({ title, href, cta, viewAll, children }: { title: string; 
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-bold">{title}</h2>
         {href && (
-          <Link href={href} className="inline-flex items-center gap-1 text-xs font-semibold text-flame hover:underline">
+          <Link href={href} className="-my-2 inline-flex items-center gap-1 py-2 text-xs font-semibold text-flame hover:underline">
             {cta ?? viewAll ?? "View all"} <ArrowRight className="h-3 w-3" />
           </Link>
         )}

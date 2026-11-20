@@ -27,7 +27,7 @@ export function LangSwitch({ className = "inline-flex" }: { className?: string }
           type="button"
           onClick={() => set(l)}
           aria-pressed={lang === l}
-          className={cn("rounded-full px-2.5 py-1 transition", lang === l ? "bg-fg text-ink" : "text-muted hover:text-fg")}
+          className={cn("min-h-8 rounded-full px-3 py-1.5 transition", lang === l ? "bg-fg text-ink" : "text-muted hover:text-fg")}
         >
           {l === "el" ? "ΕΛ" : l === "ru" ? "RU" : "EN"}
         </button>

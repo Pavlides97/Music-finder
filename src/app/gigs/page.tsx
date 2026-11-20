@@ -60,7 +60,7 @@ export default async function GigsPage({ searchParams }: { searchParams: Promise
         </Suspense>
       </div>
       {gigs.length ? (
-        <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {gigs.map((g) => <GigCard key={g.id} g={g} />)}
         </div>
       ) : (

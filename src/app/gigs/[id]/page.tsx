@@ -46,7 +46,7 @@ export default async function GigPage({ params }: { params: Promise<{ id: string
         <ArrowLeft className="h-4 w-4" /> {t.gig.allGigs}
       </Link>
 
-      <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_380px]">
+      <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_380px]">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <StatusPill status={open ? "open" : g.status === "open" ? "closed" : g.status} />
@@ -62,7 +62,7 @@ export default async function GigPage({ params }: { params: Promise<{ id: string
             </span>
           </Link>
 
-          <dl className="mt-8 grid gap-3 sm:grid-cols-2">
+          <dl className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {facts.map(([Icon, k, val]) => (
               <div key={k} className="flex items-start gap-3 rounded-2xl border border-line bg-surface p-4">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-flame/10 text-flame"><Icon className="h-5 w-5" /></span>
@@ -138,7 +138,7 @@ export default async function GigPage({ params }: { params: Promise<{ id: string
       {more.length > 0 && (
         <section className="mt-20">
           <h2 className="display mb-6 text-2xl font-bold">{t.gig.similar}</h2>
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {more.map((x) => <GigCard key={x.id} g={x} compact />)}
           </div>
         </section>

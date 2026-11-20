@@ -41,8 +41,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const href = v.role === "musician" ? `/musicians/${v.musician.slug}` : `/venues/${v.business.slug}`;
 
   return (
-    <div className="container-x grid gap-8 py-8 lg:grid-cols-[240px_1fr]">
-      <aside className="lg:sticky lg:top-24 lg:self-start">
+    <div className="container-x grid grid-cols-[minmax(0,1fr)] gap-8 py-8 lg:grid-cols-[240px_minmax(0,1fr)]">
+      <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
         <div className="mb-5 hidden items-center gap-3 lg:flex">
           <Photo src={img} alt={name} w={120} className="h-12 w-12 rounded-xl" />
           <div className="min-w-0">

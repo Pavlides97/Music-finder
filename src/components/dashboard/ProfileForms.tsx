@@ -48,7 +48,7 @@ export function MusicianProfileForm({ m }: { m: Musician }) {
   return (
     <form action={action} className="space-y-6">
       <Card title={t.dash.photos} desc={t.dash.photosDesc}>
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <ImageField name="avatar" label={t.dash.profilePhoto} defaultValue={m.avatar} />
           <ImageField name="cover" label={t.dash.coverImage} defaultValue={m.cover} shape="wide" hint={t.dash.coverHint} />
         </div>
@@ -56,7 +56,7 @@ export function MusicianProfileForm({ m }: { m: Musician }) {
       </Card>
 
       <Card title={t.dash.basics}>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t.dash.artistName}><input name="name" defaultValue={m.name} required className="input" /></Field>
           <Field label={t.dash.tagline} hint={t.dash.taglineHint}><input name="tagline" defaultValue={m.tagline} maxLength={140} className="input" /></Field>
           <Field label={t.dash.performerType}>
@@ -80,7 +80,7 @@ export function MusicianProfileForm({ m }: { m: Musician }) {
       </Card>
 
       <Card title={t.dash.rates} desc={t.dash.ratesDesc}>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t.dash.priceFrom}><input name="price_from" type="number" min={0} defaultValue={m.price_from || ""} className="input" /></Field>
           <Field label={t.dash.priceTo}><input name="price_to" type="number" min={0} defaultValue={m.price_to ?? ""} className="input" /></Field>
           <Field label={t.dash.hourlyRate}><input name="hourly_rate" type="number" min={0} defaultValue={m.hourly_rate ?? ""} className="input" /></Field>
@@ -97,7 +97,7 @@ export function MusicianProfileForm({ m }: { m: Musician }) {
       </Card>
 
       <Card title={t.dash.contactDetails} desc={t.dash.contactDescM}>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t.dash.phone}><input name="phone" defaultValue={m.phone ?? ""} className="input" placeholder="+357 …" /></Field>
           <Field label={t.dash.bookingEmail}><input name="public_email" type="email" defaultValue={m.public_email ?? ""} className="input" /></Field>
           <Field label={t.dash.website}><input name="website" defaultValue={m.website ?? ""} className="input" /></Field>
@@ -115,13 +115,13 @@ export function BusinessProfileForm({ b }: { b: Business }) {
   return (
     <form action={action} className="space-y-6">
       <Card title={t.dash.branding}>
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <ImageField name="logo" label={t.dash.logo} defaultValue={b.logo} />
           <ImageField name="cover" label={t.dash.coverPhoto} defaultValue={b.cover} shape="wide" hint={t.dash.coverHintB} />
         </div>
       </Card>
       <Card title={t.dash.aboutBusiness}>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t.dash.businessName}><input name="name" defaultValue={b.name} required className="input" /></Field>
           <Field label={t.dash.category}>
             <select name="category" defaultValue={b.category} className="input">{BUSINESS_CATEGORIES.map((p) => <option key={p} value={p}>{L(p)}</option>)}</select>
@@ -136,13 +136,13 @@ export function BusinessProfileForm({ b }: { b: Business }) {
       </Card>
       <Card title={t.dash.musicLooking}>
         <ChipGroup name="music_wanted" label={t.common.genres} options={GENRES} defaultValue={b.music_wanted} />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t.dash.budgetPerfFrom}><input name="budget_min" type="number" min={0} defaultValue={b.budget_min ?? ""} className="input" /></Field>
           <Field label={t.dash.budgetPerfTo}><input name="budget_max" type="number" min={0} defaultValue={b.budget_max ?? ""} className="input" /></Field>
         </div>
       </Card>
       <Card title={t.dash.contactInfo} desc={t.dash.contactDescB}>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label={t.dash.phone}><input name="phone" defaultValue={b.phone ?? ""} className="input" /></Field>
           <Field label={t.auth.email}><input name="public_email" type="email" defaultValue={b.public_email ?? ""} className="input" /></Field>
           <Field label={t.dash.website}><input name="website" defaultValue={b.website ?? ""} className="input" /></Field>

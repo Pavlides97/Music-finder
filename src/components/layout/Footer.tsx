@@ -7,7 +7,7 @@ export async function Footer() {
   const { t, L } = await getI18n();
   return (
     <footer className="mt-24 border-t border-line bg-ink">
-      <div className="container-x grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+      <div className="container-x grid grid-cols-1 gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="space-y-4">
           <Logo />
           <p className="max-w-xs text-sm text-muted">{t.footer.about}</p>

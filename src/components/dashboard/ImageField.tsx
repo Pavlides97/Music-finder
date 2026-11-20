@@ -39,7 +39,7 @@ export function ImageField({ name, label, defaultValue, shape = "square", hint }
     <div>
       <span className="label">{label}</span>
       <input type="hidden" name={name} value={value} />
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <button
           type="button"
           onClick={() => input.current?.click()}

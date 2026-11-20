@@ -158,7 +158,7 @@ export function MatchWizard({ init }: { init: WizardInit }) {
         {step === 3 && (
           <>
             <h2 className="display text-2xl font-bold sm:text-3xl">{t.match.q4}</h2>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2">
+            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
               <label className="block">
                 <span className="label">{t.match.dateOptional}</span>
                 <input type="date" min={isoDate(new Date())} value={a.date ?? ""} onChange={(e) => setA((x) => ({ ...x, date: e.target.value || undefined }))} className="input [color-scheme:dark]" />

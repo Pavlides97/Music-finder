@@ -39,7 +39,7 @@ export async function Navbar() {
           ) : (
             <>
               <Link href="/login" className="btn-quiet hidden sm:inline-flex">{t.common.logIn}</Link>
-              <Link href="/signup" className="btn-primary btn-sm sm:px-5 sm:py-2.5 sm:text-sm">{t.common.joinFree}</Link>
+              <Link href="/signup" className="btn-primary btn-sm min-h-9 sm:px-5 sm:py-2.5 sm:text-sm">{t.common.joinFree}</Link>
             </>
           )}
           <MobileMenu loggedIn={!!v} />

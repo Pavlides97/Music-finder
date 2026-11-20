@@ -74,7 +74,7 @@ export function CyprusMap({ counts }: { counts: Record<string, number> }) {
   const max = Math.max(1, ...cities.map((c) => c.n));
 
   return (
-    <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.6fr]">
+    <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_1.6fr]">
       <div>
         <p className="eyebrow">{t.home.mapEyebrow}</p>
         <h2 className="display mt-3 text-4xl font-extrabold">{t.home.mapTitle}</h2>
