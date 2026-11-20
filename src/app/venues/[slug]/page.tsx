@@ -6,6 +6,7 @@ import { getViewer } from "@/lib/auth";
 import { getBusinessBySlug, gigsForBusiness } from "@/lib/data";
 import { getI18n } from "@/lib/i18n/server";
 import { locale } from "@/lib/i18n/core";
+import { ContactButtons } from "@/components/ContactButtons";
 import { Photo } from "@/components/ui/Photo";
 import { GigCard } from "@/components/cards";
 import { startConversationAction } from "@/app/actions";
@@ -29,18 +30,25 @@ export default async function VenueProfile({ params }: { params: Promise<{ slug:
   return (
     <div>
       <section className="relative h-[260px] sm:h-[340px]">
-        <Photo src={b.cover} alt={b.name} label="" w={1800} className="absolute inset-0" />
+        <Photo src={b.cover || b.photos[0]} alt={b.name} label="" w={1800} className="absolute inset-0" />
         <div className="absolute inset-0 bg-gradient-to-t from-night via-night/50 to-transparent" />
       </section>
       <div className="container-x relative -mt-20">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
           <Photo src={b.logo} alt={b.name} w={300} className="h-28 w-28 shrink-0 rounded-3xl ring-4 ring-night" />
           <div className="flex-1">
-            <span className="chip border-violet/30 bg-violet/10 text-violet-2"><Building2 className="h-3.5 w-3.5" /> {L(b.category)}</span>
+            <div className="flex flex-wrap gap-2">
+              <span className="chip border-violet/30 bg-violet/10 text-violet-2"><Building2 className="h-3.5 w-3.5" /> {L(b.category)}</span>
+              {b.looking ? (
+                <span className="chip border-lime/30 bg-lime/10 text-lime"><span className="h-1.5 w-1.5 rounded-full bg-lime" /> {t.pf.lookingBadge}</span>
+              ) : (
+                <span className="chip">{t.pf.notLookingBadge}</span>
+              )}
+            </div>
             <h1 className="display mt-3 flex items-center gap-2 text-4xl font-extrabold sm:text-5xl">
               {b.name} {b.verified ? <BadgeCheck className="h-8 w-8 text-violet-2" /> : null}
             </h1>
-            <p className="mt-2 inline-flex items-center gap-1.5 text-muted"><MapPin className="h-4 w-4 text-flame" /> {b.address || L(b.location)}</p>
+            <p className="mt-2 inline-flex items-center gap-1.5 text-muted"><MapPin className="h-4 w-4 text-flame" /> {[b.address, L(b.location), L(b.country || "Cyprus")].filter(Boolean).join(", ")}</p>
           </div>
           {isOwner ? (
             <Link href="/dashboard/profile" className="btn-ghost self-start sm:self-end"><Pencil className="h-4 w-4" /> {t.profile.editProfile}</Link>
@@ -58,6 +66,16 @@ export default async function VenueProfile({ params }: { params: Promise<{ slug:
               <h2 className="display mb-4 text-2xl font-bold">{t.profile.about}</h2>
               <p className="whitespace-pre-line leading-relaxed text-fg/85">{tr(b.description, b.description_el, b.description_ru) || t.venue.noDescription}</p>
             </section>
+            {b.photos.length > 0 && (
+              <section>
+                <h2 className="display mb-4 text-2xl font-bold">{t.pf.venuePhotosTitle}</h2>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {b.photos.map((ph, i) => (
+                    <Photo key={ph + i} src={ph} alt={t.profile.photo(b.name, i + 1)} w={700} label="" className={`rounded-2xl ${i === 0 ? "col-span-2 aspect-[2/1] sm:col-span-2" : "aspect-square"}`} />
+                  ))}
+                </div>
+              </section>
+            )}
             <section>
               <h2 className="display mb-4 text-2xl font-bold">{t.venue.events}</h2>
               {gigs.length ? (
@@ -79,11 +97,23 @@ export default async function VenueProfile({ params }: { params: Promise<{ slug:
                   )) : <span className="text-sm text-muted">{t.venue.allStyles}</span>}
                 </div>
               </div>
+              {b.artist_types.length > 0 && (
+                <div>
+                  <p className="label flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> {t.pf.lookingFor}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {b.artist_types.map((x) => (
+                      <Link key={x} href={`/musicians?type=${encodeURIComponent(x)}`} className="chip border-flame/30 text-fg hover:border-flame/60">{L(x)}</Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(b.budget_min || b.budget_max) ? (
               <div>
                 <p className="label flex items-center gap-1.5"><Euro className="h-3.5 w-3.5" /> {t.venue.typicalBudget}</p>
                 <p className="display text-2xl font-bold text-lime">{budget(b.budget_min, b.budget_max)}</p>
                 <p className="text-xs text-muted">{t.venue.perPerformance}</p>
               </div>
+              ) : null}
               {b.capacity ? (
                 <div>
                   <p className="label flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> {t.venue.capacity}</p>
@@ -92,9 +122,10 @@ export default async function VenueProfile({ params }: { params: Promise<{ slug:
               ) : null}
             </div>
             <div className="card space-y-3 p-6 text-sm">
-              <p className="label">{t.venue.contact}</p>
+              <p className="label">{v ? t.pf.contactDirect : t.venue.contact}</p>
               {v ? (
                 <>
+                  <ContactButtons phone={b.phone} email={b.public_email} labels={{ call: t.pf.call, whatsapp: t.pf.whatsapp, email: t.pf.sendEmail }} />
                   {b.phone && <p className="flex items-center gap-3"><Phone className="h-4 w-4 text-muted" /><a className="hover:text-flame" href={`tel:${b.phone}`}>{b.phone}</a></p>}
                   {b.public_email && <p className="flex items-center gap-3"><Mail className="h-4 w-4 text-muted" /><a className="break-all hover:text-flame" href={`mailto:${b.public_email}`}>{b.public_email}</a></p>}
                   {b.website && <p className="flex items-center gap-3"><Globe className="h-4 w-4 text-muted" />{b.website}</p>}

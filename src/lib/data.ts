@@ -17,6 +17,8 @@ export type Musician = {
   years_active: number;
   performer_type: string;
   location: string;
+  country: string;
+  available: number;
   genres: string[];
   event_types: string[];
   performances: string[];
@@ -48,11 +50,15 @@ export type Business = {
   name: string;
   category: string;
   location: string;
+  country: string;
   address: string | null;
   description: string;
   description_el: string | null;
   description_ru: string | null;
   music_wanted: string[];
+  artist_types: string[];
+  photos: string[];
+  looking: number;
   budget_min: number | null;
   budget_max: number | null;
   capacity: number | null;
@@ -159,7 +165,7 @@ function toMusician(row: Record<string, unknown>): Musician {
 }
 
 function toBusiness(row: Record<string, unknown>): Business {
-  return { ...(row as unknown as Business), music_wanted: parseList(row.music_wanted) };
+  return { ...(row as unknown as Business), music_wanted: parseList(row.music_wanted), artist_types: parseList(row.artist_types), photos: parseList(row.photos) };
 }
 
 const GIG_SELECT = `
@@ -187,6 +193,7 @@ export type MusicianFilters = {
   genre?: string;
   type?: string;
   event?: string;
+  available?: boolean;
   budget?: number;
   date?: string;
   sort?: string;
@@ -220,6 +227,7 @@ export function searchMusicians(f: MusicianFilters, limit = 60): Musician[] {
     where.push("EXISTS (SELECT 1 FROM json_each(m.event_types) WHERE value = ?)");
     params.push(f.event);
   }
+  if (f.available) where.push("m.available = 1");
   if (f.budget) {
     where.push("m.price_from <= ?");
     params.push(f.budget);
@@ -234,7 +242,7 @@ export function searchMusicians(f: MusicianFilters, limit = 60): Musician[] {
     f.sort === "price_desc" ? "m.price_from DESC" :
     f.sort === "rating" ? "rating DESC, review_count DESC" :
     f.sort === "new" ? "m.created_at DESC, m.id DESC" :
-    "m.featured DESC, m.verified DESC, rating DESC, review_count DESC";
+    "m.available DESC, m.featured DESC, m.verified DESC, rating DESC, review_count DESC";
   const sql = `${MUSICIAN_SELECT} ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY ${order} LIMIT ${limit}`;
   return db().prepare(sql).all(...params).map(toMusician);
 }
@@ -298,9 +306,10 @@ export function platformStats() {
 }
 
 /* ---------- Businesses ---------- */
-export function listBusinesses(f: { location?: string; category?: string; q?: string } = {}) {
+export function listBusinesses(f: { location?: string; category?: string; q?: string; looking?: boolean } = {}) {
   const where: string[] = [];
   const params: string[] = [];
+  if (f.looking) where.push("b.looking = 1");
   if (f.location) {
     where.push("b.location = ?");
     params.push(f.location);
@@ -316,7 +325,7 @@ export function listBusinesses(f: { location?: string; category?: string; q?: st
   return db()
     .prepare(
       `SELECT b.*, (SELECT COUNT(*) FROM gigs g WHERE g.business_id = b.id AND g.status='open' AND g.deadline >= '${today()}') AS open_gigs
-       FROM businesses b ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY b.verified DESC, open_gigs DESC, b.name`,
+       FROM businesses b ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY b.looking DESC, b.verified DESC, open_gigs DESC, b.name`,
     )
     .all(...params)
     .map(toBusiness);

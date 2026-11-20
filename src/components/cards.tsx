@@ -28,6 +28,7 @@ export function MusicianCard({ m, priority }: { m: Musician; priority?: boolean 
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent" />
         <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
           <span className="rounded-full bg-ink/70 px-2.5 py-1 text-[11px] font-semibold text-fg backdrop-blur">{L(m.performer_type)}</span>
+          {!m.available && <span className="rounded-full bg-ink/80 px-2.5 py-1 text-[11px] font-semibold text-muted backdrop-blur">{t.pf.unavailableBadge}</span>}
         </div>
         <div className="absolute inset-x-0 bottom-0 p-4">
           <h3 className="display flex items-center gap-1.5 text-xl font-bold leading-tight text-white">
@@ -122,13 +123,12 @@ export function VenueCard({ b }: { b: Business }) {
     <Tilt className="h-full rounded-2xl">
     <Link href={`/venues/${b.slug}`} className="group elevated block h-full overflow-hidden rounded-2xl border border-line transition hover:border-line-strong">
       <div className="relative h-36">
-        <Photo src={b.cover} alt={b.name} w={700} label="" className="absolute inset-0" imgClassName="transition duration-700 group-hover:scale-105" />
+        <Photo src={b.cover || b.photos[0]} alt={b.name} w={700} label="" className="absolute inset-0" imgClassName="transition duration-700 group-hover:scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent" />
-        {b.open_gigs ? (
-          <span className="absolute right-3 top-3 rounded-full bg-lime px-2.5 py-1 text-[11px] font-bold text-ink">
-            {t.cards.openGigs(b.open_gigs)}
-          </span>
-        ) : null}
+        <div className="absolute right-3 top-3 flex flex-wrap justify-end gap-1.5">
+          {b.looking ? <span className="rounded-full bg-lime px-2.5 py-1 text-[11px] font-bold text-ink">{t.pf.lookingBadge}</span> : null}
+          {b.open_gigs ? <span className="rounded-full bg-ink/80 px-2.5 py-1 text-[11px] font-bold text-fg backdrop-blur">{t.cards.openGigs(b.open_gigs)}</span> : null}
+        </div>
       </div>
       <div className="relative -mt-8 flex items-end gap-3 px-4">
         <Photo src={b.logo} alt={b.name} w={160} className="h-14 w-14 shrink-0 rounded-xl ring-4 ring-surface" />

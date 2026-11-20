@@ -5,7 +5,7 @@ import { SearchX, Sparkles } from "lucide-react";
 import { MusicianCard } from "@/components/cards";
 import { FilterBar, type FilterDef } from "@/components/search/FilterBar";
 import { searchMusicians } from "@/lib/data";
-import { BUDGET_STEPS, EVENT_TYPES, GENRES, LOCATIONS, PERFORMER_TYPES } from "@/lib/constants";
+import { BUDGET_STEPS, GENRES, LOCATIONS, PERFORMER_TYPES } from "@/lib/constants";
 import { isoDate } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -27,6 +27,7 @@ export default async function MusiciansPage({ searchParams }: { searchParams: SP
     genre: sp.genre,
     type: sp.type,
     event: sp.event,
+    available: sp.available === "1",
     budget: sp.budget ? Number(sp.budget) : undefined,
     date: sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : undefined,
     sort: sp.sort,
@@ -37,7 +38,7 @@ export default async function MusiciansPage({ searchParams }: { searchParams: SP
     { name: "location", label: t.common.location, type: "select", options: opts(LOCATIONS), placeholder: t.common.allCyprus },
     { name: "genre", label: t.common.genre, type: "select", options: opts(GENRES), placeholder: t.common.anyGenre },
     { name: "type", label: t.common.performer, type: "select", options: opts(PERFORMER_TYPES), placeholder: t.common.anyType },
-    { name: "event", label: t.common.eventType, type: "select", options: opts(EVENT_TYPES), placeholder: t.common.anyEvent },
+    { name: "available", label: t.pf.availability, type: "select", options: [{ value: "1", label: t.pf.takingBookings }], placeholder: t.pf.any },
     { name: "budget", label: t.common.budget, type: "select", options: BUDGET_STEPS.map((b) => ({ value: String(b), label: t.dir.upTo(eur(b)) })), placeholder: t.common.anyBudget },
     { name: "date", label: t.common.availableOn, type: "date", min: isoDate(new Date()) },
   ];

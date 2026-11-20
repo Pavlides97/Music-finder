@@ -97,7 +97,7 @@ const BUSINESSES: B[] = [
   {
     email: "azure@demo.soundcy.app",
     name: "Azure Bay Resort & Spa",
-    category: "Hotel & Resort",
+    category: "Hotel",
     location: "Paphos",
     address: "Poseidonos Avenue, Kato Paphos 8042",
     description: "5-star seafront resort with 280 rooms, three restaurants and a sunset pool bar. We programme nightly entertainment for guests and host 60+ destination weddings per season.",
@@ -147,7 +147,7 @@ const BUSINESSES: B[] = [
   {
     email: "velvet@demo.soundcy.app",
     name: "Velvet Room",
-    category: "Bar & Lounge",
+    category: "Bar",
     location: "Nicosia",
     address: "Makariou Avenue, Nicosia 1065",
     description: "Speakeasy-style cocktail bar with a baby grand piano. Jazz Wednesdays, soul Fridays and a monthly singer-songwriter night.",
@@ -264,8 +264,8 @@ export function seed(conn: Database) {
     });
 
     // Fictional sample venues & gigs (demo business logins use password demo1234).
-    const insB = conn.prepare(`INSERT INTO businesses (user_id, slug, name, category, location, address, description, music_wanted, budget_min, budget_max, capacity, logo, cover, phone, public_email, website, verified, description_el, description_ru)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+    const insB = conn.prepare(`INSERT INTO businesses (user_id, slug, name, category, location, address, description, music_wanted, budget_min, budget_max, capacity, logo, cover, phone, public_email, website, verified, description_el, description_ru, artist_types, photos, looking)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
     const bIds: Record<string, number> = {};
     BUSINESSES.forEach((b) => {
       const u = insUser.run(b.email, demoPw, "business", b.name);
@@ -273,6 +273,7 @@ export function seed(conn: Database) {
       const r = insB.run(
         Number(u.lastInsertRowid), slug, b.name, b.category, b.location, b.address, b.description, J(b.wanted), b.bmin, b.bmax,
         b.capacity || null, b.logo, b.cover, b.phone, b.email.replace("@demo.soundcy.app", "@hello.example.cy"), b.website, b.verified ? 1 : 0, VENUE_DESC_EL[b.email] ?? null, VENUE_DESC_RU[b.email] ?? null,
+        J([...new Set(GIGS.filter((g) => g.biz === b.email).map((g) => g.type))]), J(b.cover && b.cover !== b.logo ? [b.cover] : []), 1,
       );
       bIds[b.email] = Number(r.lastInsertRowid);
     });

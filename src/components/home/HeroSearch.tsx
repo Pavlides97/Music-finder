@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CalendarDays, MapPin, Music, PartyPopper, Search } from "lucide-react";
-import { EVENT_TYPES, GENRES, LOCATIONS } from "@/lib/constants";
+import { EVENT_TYPES, GENRES, LOCATIONS, PERFORMER_TYPES } from "@/lib/constants";
 import { cn, isoDate } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/client";
 
@@ -11,13 +11,16 @@ export function HeroSearch() {
   const router = useRouter();
   const { t, L } = useI18n();
   const [mode, setMode] = useState<"musicians" | "gigs">("musicians");
-  const [f, setF] = useState({ location: "", genre: "", event: "", date: "" });
+  const [f, setF] = useState({ location: "", genre: "", event: "", type: "", date: "" });
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const p = new URLSearchParams();
     Object.entries(f).forEach(([k, v]) => {
-      if (v && !(mode === "gigs" && k === "date")) p.set(k, v);
+      if (!v) return;
+      if (mode === "gigs" && (k === "date" || k === "type")) return;
+      if (mode === "musicians" && k === "event") return;
+      p.set(k, v);
     });
     router.push(`/${mode}${p.size ? "?" + p.toString() : ""}`);
   }
@@ -66,11 +69,18 @@ export function HeroSearch() {
         <label className={field}>
           <PartyPopper className="h-4 w-4 shrink-0 text-flame" />
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-dim">{t.common.eventType}</span>
-            <select className={sel} value={f.event} onChange={(e) => setF({ ...f, event: e.target.value })}>
-              <option value="">{t.common.anyEvent}</option>
-              {EVENT_TYPES.map((g) => <option key={g} value={g}>{L(g)}</option>)}
-            </select>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-dim">{mode === "musicians" ? t.pf.artistTypeSearch : t.common.eventType}</span>
+            {mode === "musicians" ? (
+              <select className={sel} value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })}>
+                <option value="">{t.pf.anyArtist}</option>
+                {PERFORMER_TYPES.map((g) => <option key={g} value={g}>{L(g)}</option>)}
+              </select>
+            ) : (
+              <select className={sel} value={f.event} onChange={(e) => setF({ ...f, event: e.target.value })}>
+                <option value="">{t.common.anyEvent}</option>
+                {EVENT_TYPES.map((g) => <option key={g} value={g}>{L(g)}</option>)}
+              </select>
+            )}
           </span>
         </label>
         <label className={cn(field, mode === "gigs" && "opacity-40")}>

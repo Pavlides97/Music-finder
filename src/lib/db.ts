@@ -53,6 +53,8 @@ CREATE TABLE IF NOT EXISTS musicians (
   years_active INTEGER NOT NULL DEFAULT 1,
   performer_type TEXT NOT NULL DEFAULT 'Solo artist',
   location TEXT NOT NULL DEFAULT 'Nicosia',
+  country TEXT NOT NULL DEFAULT 'Cyprus',
+  available INTEGER NOT NULL DEFAULT 1,
   genres TEXT NOT NULL DEFAULT '[]',
   event_types TEXT NOT NULL DEFAULT '[]',
   performances TEXT NOT NULL DEFAULT '[]',
@@ -83,11 +85,15 @@ CREATE TABLE IF NOT EXISTS businesses (
   name TEXT NOT NULL,
   category TEXT NOT NULL DEFAULT 'Restaurant',
   location TEXT NOT NULL DEFAULT 'Nicosia',
+  country TEXT NOT NULL DEFAULT 'Cyprus',
   address TEXT,
   description TEXT NOT NULL DEFAULT '',
   description_el TEXT,
   description_ru TEXT,
   music_wanted TEXT NOT NULL DEFAULT '[]',
+  artist_types TEXT NOT NULL DEFAULT '[]',
+  photos TEXT NOT NULL DEFAULT '[]',
+  looking INTEGER NOT NULL DEFAULT 1,
   budget_min INTEGER,
   budget_max INTEGER,
   capacity INTEGER,
@@ -254,6 +260,16 @@ export function db(): Database {
   if (!has("businesses", "description_ru")) conn.exec("ALTER TABLE businesses ADD COLUMN description_ru TEXT");
   if (!has("gigs", "title_ru")) conn.exec("ALTER TABLE gigs ADD COLUMN title_ru TEXT");
   if (!has("gigs", "description_ru")) conn.exec("ALTER TABLE gigs ADD COLUMN description_ru TEXT");
+  // Simplified profiles (v2)
+  if (!has("musicians", "country")) conn.exec("ALTER TABLE musicians ADD COLUMN country TEXT NOT NULL DEFAULT 'Cyprus'");
+  if (!has("musicians", "available")) conn.exec("ALTER TABLE musicians ADD COLUMN available INTEGER NOT NULL DEFAULT 1");
+  if (!has("businesses", "country")) conn.exec("ALTER TABLE businesses ADD COLUMN country TEXT NOT NULL DEFAULT 'Cyprus'");
+  if (!has("businesses", "artist_types")) conn.exec("ALTER TABLE businesses ADD COLUMN artist_types TEXT NOT NULL DEFAULT '[]'");
+  if (!has("businesses", "photos")) conn.exec("ALTER TABLE businesses ADD COLUMN photos TEXT NOT NULL DEFAULT '[]'");
+  if (!has("businesses", "looking")) conn.exec("ALTER TABLE businesses ADD COLUMN looking INTEGER NOT NULL DEFAULT 1");
+  // Old venue categories → new venue types
+  for (const [from, to] of [["Hotel & Resort", "Hotel"], ["Bar & Lounge", "Bar"], ["Club", "Nightclub"], ["Private Organizer", "Other"]])
+    conn.prepare("UPDATE businesses SET category = ? WHERE category = ?").run(to, from);
   g.__soundcyDb = conn;
   const count = conn.prepare("SELECT COUNT(*) AS n FROM users").get() as { n: number };
   if (!count.n) {

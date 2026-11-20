@@ -21,6 +21,7 @@ import {
 import { getViewer } from "@/lib/auth";
 import { getBusyDates, getMusicianBySlug, getReviews, isSaved, similarMusicians } from "@/lib/data";
 import { toEmbed } from "@/lib/embed";
+import { ContactButtons } from "@/components/ContactButtons";
 import { Photo } from "@/components/ui/Photo";
 import { RatingBadge, Stars } from "@/components/ui/Stars";
 import { AudioPlayer } from "@/components/profile/AudioPlayer";
@@ -51,6 +52,8 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
   const saved = v?.role === "business" ? isSaved(v.business.id, m.id) : false;
   const isOwner = v?.role === "musician" && v.musician.id === m.id;
   const embeds = m.videos.map(toEmbed).filter(Boolean) as NonNullable<ReturnType<typeof toEmbed>>[];
+  const otherLinks = m.videos.filter((u) => !toEmbed(u));
+  const host = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return u; } };
   const dist = [5, 4, 3, 2, 1].map((s) => reviews.filter((r) => r.rating === s).length);
 
   const ld = {
@@ -83,11 +86,16 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
               {m.verified ? (
                 <span className="chip border-violet/30 bg-violet/10 text-violet-2"><BadgeCheck className="h-3.5 w-3.5" /> {t.common.verified}</span>
               ) : null}
+              {m.available ? (
+                <span className="chip border-lime/30 bg-lime/10 text-lime"><span className="h-1.5 w-1.5 rounded-full bg-lime" /> {t.pf.availableBadge}</span>
+              ) : (
+                <span className="chip">{t.pf.unavailableBadge}</span>
+              )}
             </div>
             <h1 className="display mt-3 text-4xl font-extrabold leading-none sm:text-6xl">{m.name}</h1>
-            <p className="mt-3 text-lg text-muted">{L(m.tagline)}</p>
+            {m.tagline && <p className="mt-3 text-lg text-muted">{L(m.tagline)}</p>}
             <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
-              <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-flame" /> {t.profile.cyprus(L(m.location))}</span>
+              <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-flame" /> {L(m.location)}, {L(m.country || "Cyprus")}</span>
               <RatingBadge rating={m.rating} count={m.review_count} />
               {m.years_active > 0 && <span className="inline-flex items-center gap-1.5"><Mic2 className="h-4 w-4 text-flame" /> {t.profile.years(m.years_active)}</span>}
               {m.members > 1 && <span className="inline-flex items-center gap-1.5"><Users className="h-4 w-4 text-flame" /> {t.profile.members(m.members)}</span>}
@@ -125,18 +133,28 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
               </Section>
             )}
 
-            {embeds.length > 0 && (
-              <Section title={t.profile.watch}>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {(embeds.length > 0 || otherLinks.length > 0) && (
+              <Section title={t.pf.musicLinks}>
+                {embeds.length > 0 && <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {embeds.map((e, i) => (
                     <div key={i} className={e.kind === "youtube" ? "aspect-video overflow-hidden rounded-2xl border border-line" : "h-[152px] overflow-hidden rounded-2xl"}>
                       <iframe src={e.src} title={t.profile.media(m.name, i + 1)} className="h-full w-full" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowFullScreen />
                     </div>
                   ))}
-                </div>
+                </div>}
+                {otherLinks.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {otherLinks.map((u) => (
+                      <a key={u} href={u} target="_blank" rel="noopener noreferrer nofollow" className="btn-ghost btn-sm min-h-10">
+                        <Globe className="h-4 w-4" /> {host(u)}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </Section>
             )}
 
+            {m.performances.length > 0 && (
             <Section title={t.profile.performances}>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {m.performances.map((p) => (
@@ -153,6 +171,7 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
                 </div>
               )}
             </Section>
+            )}
 
             {m.photos.length > 0 && (
               <Section title={t.profile.gallery}>
@@ -242,13 +261,14 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
                 </div>
               ) : (
                 <>
-                  <BookingPanel
+                  {!m.available && <p className="mb-4 rounded-xl bg-white/[0.05] p-3 text-sm text-muted">{t.pf.unavailableNote(m.name)}</p>}
+                  {m.available ? <BookingPanel
                     musician={{ id: m.id, name: m.name, price_from: m.price_from, event_types: m.event_types }}
                     blocked={blocked}
                     booked={booked}
                     viewerRole={v?.role ?? null}
                     defaultVenue={v?.role === "business" ? `${v.business.name}${v.business.address ? ", " + v.business.address : ""}` : undefined}
-                  />
+                  /> : null}
                   <div className="mt-3 grid grid-cols-2 gap-3">
                     <form action={startConversationAction}>
                       <input type="hidden" name="musician_id" value={m.id} />
@@ -269,10 +289,11 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
             </div>
 
             <div className="card mt-4 space-y-3 p-6 text-sm">
-              <p className="label">{t.profile.details}</p>
+              <p className="label">{v ? t.pf.contactDirect : t.profile.details}</p>
               {m.languages.length > 0 && <Row icon={<Languages className="h-4 w-4" />}>{m.languages.map(L).join(", ")}</Row>}
               {v ? (
                 <>
+                  <ContactButtons phone={m.phone} email={m.public_email} labels={{ call: t.pf.call, whatsapp: t.pf.whatsapp, email: t.pf.sendEmail }} />
                   {m.phone && <Row icon={<Phone className="h-4 w-4" />}><a href={`tel:${m.phone}`} className="hover:text-flame">{m.phone}</a></Row>}
                   {m.public_email && <Row icon={<Mail className="h-4 w-4" />}><a href={`mailto:${m.public_email}`} className="break-all hover:text-flame">{m.public_email}</a></Row>}
                   {m.instagram && <Row icon={<AtSign className="h-4 w-4" />}>@{m.instagram}</Row>}

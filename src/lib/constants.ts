@@ -60,17 +60,22 @@ export const EVENT_TYPES = [
   "Christenings",
 ] as const;
 
+/** Types of venue / business. */
 export const BUSINESS_CATEGORIES = [
   "Restaurant",
-  "Hotel & Resort",
-  "Bar & Lounge",
-  "Club",
+  "Bar",
+  "Hotel",
+  "Café",
+  "Nightclub",
   "Beach Bar",
+  "Event Space",
   "Wedding Planner",
   "Event Organizer",
   "Festival",
-  "Private Organizer",
+  "Other",
 ] as const;
+
+export const COUNTRIES = ["Cyprus", "Greece", "United Kingdom", "Other"] as const;
 
 export const BUDGET_STEPS = [150, 250, 400, 600, 900, 1500, 3000];
 

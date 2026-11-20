@@ -11,6 +11,11 @@ Available in **Greek, English and Russian**, and it works on desktops, laptops, 
 - **Interactive 3D design:** a WebGL "sound sphere" on the homepage, cards that tilt in 3D, and a 3D map of Cyprus with city pins.
 - **"Match me" smart matcher** (`/match`): four quick questions (occasion, city, sound, date and budget) return musicians ranked with a match percentage and plain-language reasons. The scoring is transparent: genres 40%, distance between Cyprus cities 25%, budget 20%, event type 10%, reviews 5%. Musicians busy on the chosen date go to the end.
 - **Three languages:** the ΕΛ / EN / RU switch is in the header. Visitors get their browser's language automatically. Dates, prices, genres and cities are all localised. Automatic chat messages, such as "Booking confirmed", are shown in each reader's own language. Search understands Greek and Russian words ("λαϊκό", "Лимассол", "γάμος").
+- **Quick sign-up:** under a minute (role, name, type, city, email and password), then one simple profile form.
+  - *Artists:* name, photo, country and city, short bio, type of artist, genres, YouTube/music links, extra photos, contact (email or phone), and available for bookings (yes/no).
+  - *Venues:* name, logo or photo, country, city and address, short description, venue type, preferred genres, artist types wanted, venue photos, contact, and looking for musicians (yes/no).
+  - A live **profile-completion meter** shows what's missing; tapping an item jumps to it. Profiles can be edited at any time.
+- **Direct contact:** messaging in both directions, plus Call, WhatsApp and Email buttons for signed-in users.
 - **Booking and messaging:** venues send booking requests, either side can accept, decline or counter-offer, and the chat updates live.
 - **Gig marketplace:** venues post gigs, musicians apply, and venues shortlist and hire in one click.
 - **Dashboards** for musicians (profile, bookings, applications, availability calendar) and venues (profile, posted gigs, applicants, bookings, saved musicians).

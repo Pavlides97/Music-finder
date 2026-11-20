@@ -3,14 +3,13 @@
 import { useActionState, useState } from "react";
 import { Building2, Check, Mic2 } from "lucide-react";
 import { signupAction } from "@/app/actions";
-import { BUSINESS_CATEGORIES, GENRES, LOCATIONS, PERFORMER_TYPES } from "@/lib/constants";
+import { BUSINESS_CATEGORIES, LOCATIONS, PERFORMER_TYPES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { FormMessage, SubmitButton } from "../ui/SubmitButton";
 import { useI18n } from "@/lib/i18n/client";
 
 export function SignupForm({ initialRole }: { initialRole: "musician" | "business" }) {
   const [role, setRole] = useState(initialRole);
-  const [genres, setGenres] = useState<string[]>([]);
   const [state, action] = useActionState(signupAction, undefined);
   const isM = role === "musician";
   const { t, L } = useI18n();
@@ -59,23 +58,6 @@ export function SignupForm({ initialRole }: { initialRole: "musician" | "busines
           <select name="location" className="input">{LOCATIONS.map((l) => <option key={l} value={l}>{L(l)}</option>)}</select>
         </label>
       </div>
-
-      {isM && (
-        <fieldset>
-          <legend className="label">{t.auth.yourGenres} <span className="normal-case tracking-normal text-dim">{t.auth.pickFew}</span></legend>
-          <div className="flex flex-wrap gap-1.5">
-            {GENRES.map((g) => {
-              const on = genres.includes(g);
-              return (
-                <label key={g} className={cn("chip cursor-pointer select-none px-3 py-1.5 text-sm", on && "border-violet/50 bg-violet/15 text-fg")}>
-                  <input type="checkbox" name="genres" value={g} className="sr-only" checked={on} onChange={() => setGenres(on ? genres.filter((x) => x !== g) : [...genres, g])} />
-                  {L(g)}
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
-      )}
 
       <label className="block">
         <span className="label">{t.auth.email}</span>

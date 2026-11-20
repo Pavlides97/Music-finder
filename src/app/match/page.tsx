@@ -99,7 +99,7 @@ export default async function MatchPage({ searchParams }: { searchParams: SP }) 
                     <Photo src={r.m.avatar} alt={r.m.name} w={600} className="mt-5 h-36 rounded-2xl" />
                     <ul className="mt-5 space-y-2 text-sm">
                       {r.busy && (
-                        <li className="flex items-start gap-2 text-rose"><TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" /> {t.match.busy}</li>
+                        <li className="flex items-start gap-2 text-rose"><TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" /> {r.m.available ? t.match.busy : t.pf.unavailableBadge}</li>
                       )}
                       {r.overBudget && (
                         <li className="flex items-start gap-2 text-amber-300"><TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" /> {t.match.over}</li>

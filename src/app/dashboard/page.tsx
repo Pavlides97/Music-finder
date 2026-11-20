@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, CheckCircle2, Circle, MapPin, PlusCircle, Search } from "lucide-react";
+import { CalendarDays, MapPin, PlusCircle, Search } from "lucide-react";
 import { requireViewer } from "@/lib/auth";
 import {
   applicationsForGig,
@@ -21,6 +21,8 @@ import { BookingCard } from "@/components/messages/Chat";
 import { GigCard, MusicianCard } from "@/components/cards";
 import { Photo } from "@/components/ui/Photo";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { CompletionMeter } from "@/components/dashboard/FormBits";
+import { artistCompletion, venueCompletion } from "@/lib/completion";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
@@ -46,8 +48,6 @@ export default async function DashboardHome() {
       ? [...new Map(m.genres.flatMap((g) => searchGigs({ genre: g }, 4)).map((g) => [g.id, g])).values()].slice(0, 4)
       : searchGigs({}, 4);
     const earnings = bookings.filter((b) => b.status === "confirmed" || b.status === "completed").reduce((s, b) => s + b.price, 0);
-    const checklist = profileChecklist(m, t);
-    const done = checklist.filter((c) => c.done).length;
 
     return (
       <div className="space-y-6">
@@ -59,20 +59,7 @@ export default async function DashboardHome() {
           <Stat label={t.dash.bookedValue} value={eur(earnings)} tone="sky" hint={m.review_count ? t.dash.ratingHint(m.rating.toFixed(1), m.review_count) : t.dash.noReviews} />
         </div>
 
-        {done < checklist.length && (
-          <Panel title={t.dash.complete(Math.round((done / checklist.length) * 100))} href="/dashboard/profile" cta={t.profile.editProfile} viewAll={t.common.viewAll}>
-            <div className="mb-4 h-2 overflow-hidden rounded-full bg-white/10">
-              <div className="h-full rounded-full bg-brand" style={{ width: `${(done / checklist.length) * 100}%` }} />
-            </div>
-            <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {checklist.map((c) => (
-                <li key={c.label} className={`flex items-center gap-2 text-sm ${c.done ? "text-muted line-through" : ""}`}>
-                  {c.done ? <CheckCircle2 className="h-4 w-4 text-lime" /> : <Circle className="h-4 w-4 text-dim" />} {c.label}
-                </li>
-              ))}
-            </ul>
-          </Panel>
-        )}
+        <CompletionMeter compact items={artistCompletion(m)} labels={{ ...t.pf.item, type: t.pf.artistType }} href="/dashboard/profile" />
 
         <Panel title={t.dash.needsResponse} href="/dashboard/bookings" viewAll={t.common.viewAll}>
           {needs.length ? (
@@ -129,6 +116,7 @@ export default async function DashboardHome() {
         subtitle={`${i18n.L(b.category)} · ${i18n.L(b.location)}`}
         action={<Link href="/dashboard/gigs/new" className="btn-primary"><PlusCircle className="h-4 w-4" /> {t.dash.postGig}</Link>}
       />
+      <CompletionMeter compact items={venueCompletion(b)} labels={{ ...t.pf.item, type: t.pf.venueType }} href="/dashboard/profile" />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label={t.dash.needsReply} value={needs.length} tone="flame" hint={t.dash.needsReplyHintB} />
         <Stat label={t.dash.upcomingEvents} value={upcoming.length} tone="lime" hint={upcoming[0] ? t.dash.next(d(upcoming[0].event_date)) : t.dash.nothingConfirmed} />
@@ -205,15 +193,3 @@ function BookingList({ items, role, empty, i18n }: { items: Booking[]; role: "mu
   );
 }
 
-function profileChecklist(m: Musician, t: I18n["t"]) {
-  return [
-    { label: t.dash.check.photo, done: !!m.avatar },
-    { label: t.dash.check.cover, done: !!m.cover },
-    { label: t.dash.check.bio, done: m.bio.length >= 100 },
-    { label: t.dash.check.genres, done: m.genres.length > 0 && m.event_types.length > 0 },
-    { label: t.dash.check.audio, done: m.tracks.length > 0 },
-    { label: t.dash.check.photos, done: m.photos.length > 0 },
-    { label: t.dash.check.performances, done: m.performances.length > 0 },
-    { label: t.dash.check.video, done: m.videos.length > 0 },
-  ];
-}

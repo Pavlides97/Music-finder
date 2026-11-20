@@ -14,7 +14,7 @@ import {
   getGig,
   getMusicianById,
 } from "@/lib/data";
-import { BUSINESS_CATEGORIES, EVENT_TYPES, GENRES, LOCATIONS, PERFORMER_TYPES } from "@/lib/constants";
+import { BUSINESS_CATEGORIES, COUNTRIES, EVENT_TYPES, GENRES, LOCATIONS, PERFORMER_TYPES } from "@/lib/constants";
 import { euro, fmtDate, isoDate, slugify } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -90,10 +90,9 @@ export async function signupAction(_: FormState, fd: FormData): Promise<FormStat
     const uid = Number(db().prepare("INSERT INTO users (email, password_hash, role, name) VALUES (?,?,?,?)").run(email, hashPassword(password), role, name).lastInsertRowid);
     if (role === "musician") {
       const type = oneOf(str(fd, "performer_type"), PERFORMER_TYPES, "Solo artist");
-      const genres = list(fd, "genres", GENRES);
       db()
         .prepare("INSERT INTO musicians (user_id, slug, name, performer_type, location, genres, tagline, public_email) VALUES (?,?,?,?,?,?,?,?)")
-        .run(uid, uniqueSlug("musicians", name), name, type, location, JSON.stringify(genres.length ? genres : ["Pop"]), "", email);
+        .run(uid, uniqueSlug("musicians", name), name, type, location, "[]", "", email);
     } else {
       const category = oneOf(str(fd, "category"), BUSINESS_CATEGORIES, "Restaurant");
       db()
@@ -113,52 +112,56 @@ export async function logoutAction() {
 
 /* --------------------------- Profiles --------------------------- */
 
+/** Up to 6 http(s) links (YouTube, Spotify, SoundCloud, Instagram, website…). */
+const links = (fd: FormData) =>
+  [...new Set(fd.getAll("links").map((v) => String(v).trim()).filter((u) => /^https?:\/\/\S+\.\S+/.test(u)))].slice(0, 6);
+/** Uploaded images or http(s) image URLs, one per line, max 12. */
+const images = (fd: FormData, k: string) =>
+  lines(fd, k)
+    .filter((u) => /^(https?:\/\/|\/api\/uploads\/|photo-[\w-]+$)/.test(u))
+    .slice(0, 12);
+const validEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+
+/** Country + city: Cyprus uses the fixed city list; elsewhere the city is free text. */
+function place(fd: FormData) {
+  const country = oneOf(str(fd, "country"), COUNTRIES, "Cyprus");
+  const city = country === "Cyprus" ? oneOf(str(fd, "city"), LOCATIONS, "" as never) : str(fd, "city_text", 80);
+  return { country, city };
+}
+
 export async function saveMusicianProfile(_: FormState, fd: FormData): Promise<FormState> {
   const v = await requireViewer();
   const { t } = await getI18n();
   if (v.role !== "musician") return { error: t.errors.onlyMusicians };
   const name = str(fd, "name", 120);
-  if (name.length < 2) return { error: t.errors.nameRequired };
-  const tracks = lines(fd, "tracks")
-    .map((l) => {
-      const [title, url, duration] = l.split("|").map((s) => s.trim());
-      return url && /^https?:\/\//.test(url) ? { title: title || "Untitled", url, duration: duration || "" } : null;
-    })
-    .filter(Boolean);
-  const urls = (k: string) => lines(fd, k).filter((u) => /^https?:\/\//.test(u));
-  const images = (k: string) => lines(fd, k).filter((u) => /^(https?:\/\/|\/api\/uploads\/|photo-[\w-]+$)/.test(u));
+  const type = str(fd, "performer_type");
+  const { country, city } = place(fd);
+  const email = str(fd, "public_email", 200);
+  const phone = str(fd, "phone", 40);
+  if (name.length < 2) return { error: t.pf.needName };
+  if (!PERFORMER_TYPES.includes(type as never)) return { error: t.pf.needType };
+  if (!city) return { error: t.pf.needCity };
+  if (!email && !phone) return { error: t.pf.needContact };
+  if (email && !validEmail(email)) return { error: t.pf.badEmail };
   db()
     .prepare(
-      `UPDATE musicians SET name=?, slug=?, tagline=?, bio=?, experience=?, years_active=?, performer_type=?, location=?, genres=?, event_types=?,
-        performances=?, languages=?, members=?, price_from=?, price_to=?, hourly_rate=?, avatar=?, cover=?, photos=?, tracks=?, videos=?, phone=?, public_email=?, website=?, instagram=?
-       WHERE id = ?`,
+      `UPDATE musicians SET name=?, slug=?, avatar=?, country=?, location=?, bio=?, performer_type=?, genres=?, videos=?, photos=?,
+        public_email=?, phone=?, available=? WHERE id = ?`,
     )
     .run(
       name,
       uniqueSlug("musicians", name, v.musician.id),
-      str(fd, "tagline", 140),
-      str(fd, "bio", 3000),
-      str(fd, "experience", 1500),
-      num(fd, "years_active") ?? 0,
-      oneOf(str(fd, "performer_type"), PERFORMER_TYPES, "Solo artist"),
-      oneOf(str(fd, "location"), LOCATIONS, "Nicosia"),
-      JSON.stringify(list(fd, "genres", GENRES)),
-      JSON.stringify(list(fd, "event_types", EVENT_TYPES)),
-      JSON.stringify(lines(fd, "performances")),
-      JSON.stringify(str(fd, "languages", 200).split(",").map((s) => s.trim()).filter(Boolean)),
-      num(fd, "members") ?? 1,
-      num(fd, "price_from") ?? 0,
-      num(fd, "price_to"),
-      num(fd, "hourly_rate"),
       str(fd, "avatar", 500) || null,
-      str(fd, "cover", 500) || null,
-      JSON.stringify(images("photos")),
-      JSON.stringify(tracks),
-      JSON.stringify(urls("videos")),
-      str(fd, "phone", 40) || null,
-      str(fd, "public_email", 200) || null,
-      str(fd, "website", 200) || null,
-      str(fd, "instagram", 100).replace(/^@/, "") || null,
+      country,
+      city,
+      str(fd, "bio", 1200),
+      type,
+      JSON.stringify(list(fd, "genres", GENRES)),
+      JSON.stringify(links(fd)),
+      JSON.stringify(images(fd, "photos")),
+      email || null,
+      phone || null,
+      str(fd, "available") === "0" ? 0 : 1,
       v.musician.id,
     );
   db().prepare("UPDATE users SET name = ? WHERE id = ?").run(name, v.user.id);
@@ -171,28 +174,35 @@ export async function saveBusinessProfile(_: FormState, fd: FormData): Promise<F
   const { t } = await getI18n();
   if (v.role !== "business") return { error: t.errors.onlyBusinesses };
   const name = str(fd, "name", 120);
-  if (name.length < 2) return { error: t.errors.businessNameRequired };
+  const type = str(fd, "category");
+  const { country, city } = place(fd);
+  const email = str(fd, "public_email", 200);
+  const phone = str(fd, "phone", 40);
+  if (name.length < 2) return { error: t.pf.needName };
+  if (!BUSINESS_CATEGORIES.includes(type as never)) return { error: t.pf.needType };
+  if (!city) return { error: t.pf.needCity };
+  if (!email && !phone) return { error: t.pf.needContact };
+  if (email && !validEmail(email)) return { error: t.pf.badEmail };
   db()
     .prepare(
-      `UPDATE businesses SET name=?, slug=?, category=?, location=?, address=?, description=?, music_wanted=?, budget_min=?, budget_max=?, capacity=?,
-        logo=?, cover=?, phone=?, public_email=?, website=? WHERE id = ?`,
+      `UPDATE businesses SET name=?, slug=?, logo=?, country=?, location=?, address=?, description=?, category=?, music_wanted=?,
+        artist_types=?, photos=?, public_email=?, phone=?, looking=? WHERE id = ?`,
     )
     .run(
       name,
       uniqueSlug("businesses", name, v.business.id),
-      oneOf(str(fd, "category"), BUSINESS_CATEGORIES, "Restaurant"),
-      oneOf(str(fd, "location"), LOCATIONS, "Nicosia"),
-      str(fd, "address", 200) || null,
-      str(fd, "description", 3000),
-      JSON.stringify(list(fd, "music_wanted", GENRES)),
-      num(fd, "budget_min"),
-      num(fd, "budget_max"),
-      num(fd, "capacity"),
       str(fd, "logo", 500) || null,
-      str(fd, "cover", 500) || null,
-      str(fd, "phone", 40) || null,
-      str(fd, "public_email", 200) || null,
-      str(fd, "website", 200) || null,
+      country,
+      city,
+      str(fd, "address", 200) || null,
+      str(fd, "description", 1200),
+      type,
+      JSON.stringify(list(fd, "music_wanted", GENRES)),
+      JSON.stringify(list(fd, "artist_types", PERFORMER_TYPES)),
+      JSON.stringify(images(fd, "photos")),
+      email || null,
+      phone || null,
+      str(fd, "looking") === "0" ? 0 : 1,
       v.business.id,
     );
   db().prepare("UPDATE users SET name = ? WHERE id = ?").run(name, v.user.id);

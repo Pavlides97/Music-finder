@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function VenuesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
   const { t, L } = await getI18n();
-  const venues = listBusinesses({ category: sp.category, location: sp.location });
+  const venues = listBusinesses({ category: sp.category, location: sp.location, looking: sp.looking === "1" });
   const href = (k: string, val?: string) => {
     const p = new URLSearchParams(Object.entries(sp).filter(([, x]) => x) as [string, string][]);
     if (val) p.set(k, val);
@@ -30,6 +30,9 @@ export default async function VenuesPage({ searchParams }: { searchParams: Promi
 
       <div className="mt-8 space-y-3">
         <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4">
+          <Link href={href("looking", sp.looking === "1" ? undefined : "1")} aria-current={sp.looking === "1" ? "true" : undefined} className={cn("chip shrink-0 px-3.5 py-2 text-sm", sp.looking === "1" ? "border-lime/50 bg-lime/10 text-lime" : "")}>
+            <span className="h-1.5 w-1.5 rounded-full bg-lime" /> {t.pf.lookingOnly}
+          </Link>
           <Link href={href("category")} className={cn("chip shrink-0 px-3.5 py-2 text-sm", !sp.category && "border-flame/40 bg-flame/10 text-flame")}>{t.dir.allTypes}</Link>
           {BUSINESS_CATEGORIES.map((c) => (
             <Link key={c} href={href("category", c)} className={cn("chip shrink-0 px-3.5 py-2 text-sm", sp.category === c && "border-flame/40 bg-flame/10 text-flame")}>{L(c)}</Link>

@@ -7,8 +7,9 @@ import { auth, errors } from "./sections/auth";
 import { msg, sys } from "./sections/messages";
 import { dash } from "./sections/dashboard";
 import { match } from "./sections/match";
+import { pf } from "./sections/profileForm";
 
 export const DICT = {
   common, nav, cards, status, stars, search, footer,
-  home, genreBlurb, dir, profile, booking, gig, venue, auth, errors, msg, sys, dash, match,
+  home, genreBlurb, dir, profile, booking, gig, venue, auth, errors, msg, sys, dash, match, pf,
 } as const;

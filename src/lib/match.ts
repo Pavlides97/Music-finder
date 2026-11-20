@@ -107,7 +107,7 @@ export function matchMusicians(q: MatchQuery, limit = 6): MatchResult[] {
       if (m.rating >= 4.5) reasons.push({ k: "rated", rating: m.rating });
     } else score += 3;
 
-    const busy = busySet.has(m.id);
+    const busy = busySet.has(m.id) || !m.available;
     if (q.date && !busy) reasons.push({ k: "free", date: q.date });
     return { m, score: Math.round(Math.min(100, score)), reasons, busy, overBudget };
   });

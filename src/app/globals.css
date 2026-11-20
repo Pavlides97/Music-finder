@@ -112,7 +112,7 @@
 }
 
 @utility input {
-  @apply w-full rounded-xl border border-line-strong bg-surface-2 px-3.5 py-2.5 text-sm text-fg placeholder:text-dim outline-none transition focus:border-flame/70 focus:ring-4 focus:ring-flame/10;
+  @apply w-full min-h-11 rounded-xl border border-line-strong bg-surface-2 px-3.5 py-2.5 text-base text-fg placeholder:text-dim outline-none transition focus:border-flame/70 focus:ring-4 focus:ring-flame/10 sm:text-sm;
 }
 
 @utility eyebrow {

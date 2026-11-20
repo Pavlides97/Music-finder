@@ -1,154 +1,218 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useCallback, useRef, useState } from "react";
 import { saveBusinessProfile, saveMusicianProfile } from "@/app/actions";
 import type { Business, Musician } from "@/lib/data";
-import { BUSINESS_CATEGORIES, EVENT_TYPES, GENRES, LOCATIONS, PERFORMER_TYPES } from "@/lib/constants";
+import { BUSINESS_CATEGORIES, GENRES, PERFORMER_TYPES } from "@/lib/constants";
+import { artistCompletion, venueCompletion, type CompletionItem } from "@/lib/completion";
+import { useI18n } from "@/lib/i18n/client";
 import { FormMessage, SubmitButton } from "../ui/SubmitButton";
 import { ChipGroup } from "./ChipGroup";
 import { GalleryField, ImageField } from "./ImageField";
-import { useI18n } from "@/lib/i18n/client";
+import { ChoiceChips, CompletionMeter, Field, LinksField, LocationFields, Section, YesNo } from "./FormBits";
 
-function Card({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
-  return (
-    <section className="card p-5 sm:p-6">
-      <h2 className="font-bold">{title}</h2>
-      {desc && <p className="mt-0.5 text-sm text-muted">{desc}</p>}
-      <div className="mt-5 space-y-5">{children}</div>
-    </section>
-  );
-}
+const BIO_MAX = 1200;
 
-function Field({ label, children, hint, className }: { label: string; children: React.ReactNode; hint?: string; className?: string }) {
-  return (
-    <label className={`block ${className ?? ""}`}>
-      <span className="label">{label}</span>
-      {children}
-      {hint && <span className="mt-1 block text-[11px] text-dim">{hint}</span>}
-    </label>
-  );
-}
-
-function SaveBar({ state }: { state?: { error?: string; ok?: string } }) {
+function SaveBar({ state, items }: { state?: { error?: string; ok?: string }; items: CompletionItem[] }) {
   const { t } = useI18n();
+  const pct = Math.round((items.filter((i) => i.done).length / items.length) * 100);
   return (
-    <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-2xl border border-line-strong bg-surface-2/95 p-3 shadow-2xl backdrop-blur sm:flex-row sm:items-center">
+    <div className="sticky bottom-3 z-10 overflow-hidden rounded-2xl border border-line-strong bg-surface-2/95 shadow-2xl backdrop-blur">
+      {/* slim live progress line (the full meter scrolls away on phones) */}
+      <div className="h-1 bg-white/10" aria-hidden>
+        <div className={pct === 100 ? "h-full bg-lime transition-all" : "h-full bg-brand transition-all"} style={{ width: `${pct}%` }} />
+      </div>
+      <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
       <div className="flex-1">
         <FormMessage state={state} />
-        {!state?.error && !state?.ok && <p className="px-2 text-sm text-muted">{t.dash.saveHint}</p>}
+        {!state?.error && !state?.ok && (
+          <p className="px-2 text-sm text-muted">
+            <span className="font-semibold text-fg sm:hidden">{t.pf.completeTitle(pct)}</span>
+            <span className="hidden sm:inline">{t.dash.saveHint}</span>
+          </p>
+        )}
       </div>
-      <SubmitButton className="btn-lg" pendingText={t.dash.saving}>{t.dash.saveProfile}</SubmitButton>
+      <SubmitButton className="btn-lg w-full sm:w-auto" pendingText={t.dash.saving}>
+        {t.dash.saveProfile}
+      </SubmitButton>
+      </div>
     </div>
   );
 }
 
+/** Re-computes completion whenever any field in the form changes. */
+function useLiveCompletion(compute: (fd: FormData) => CompletionItem[], initial: CompletionItem[]) {
+  const form = useRef<HTMLFormElement>(null);
+  const [items, setItems] = useState(initial);
+  const update = useCallback(() => {
+    if (form.current) setItems(compute(new FormData(form.current)));
+  }, [compute]);
+  return { form, items, update };
+}
+
+const cityOf = (fd: FormData) => String(fd.get("country") === "Cyprus" ? (fd.get("city") ?? "") : (fd.get("city_text") ?? ""));
+const nonEmpty = (fd: FormData, k: string) => fd.getAll(k).map(String).filter((x) => x.trim());
+const photoLines = (fd: FormData) => String(fd.get("photos") ?? "").split("\n").filter(Boolean);
+
+/* ------------------------------------------------------------------ */
+/* Artist / musician                                                    */
+/* ------------------------------------------------------------------ */
+
 export function MusicianProfileForm({ m }: { m: Musician }) {
+  const { t } = useI18n();
   const [state, action] = useActionState(saveMusicianProfile, undefined);
-  const { t, L } = useI18n();
+  const [bio, setBio] = useState(m.bio);
+  const compute = useCallback(
+    (fd: FormData) =>
+      artistCompletion({
+        name: String(fd.get("name") ?? ""),
+        avatar: String(fd.get("avatar") ?? ""),
+        location: cityOf(fd),
+        bio: String(fd.get("bio") ?? ""),
+        performer_type: String(fd.get("performer_type") ?? ""),
+        genres: nonEmpty(fd, "genres"),
+        videos: nonEmpty(fd, "links"),
+        photos: photoLines(fd),
+        phone: String(fd.get("phone") ?? ""),
+        public_email: String(fd.get("public_email") ?? ""),
+      }),
+    [],
+  );
+  const { form, items, update } = useLiveCompletion(compute, artistCompletion(m));
+  const labels = { ...t.pf.item, type: t.pf.artistType } as Record<string, string>;
+
   return (
-    <form action={action} className="space-y-6">
-      <Card title={t.dash.photos} desc={t.dash.photosDesc}>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <ImageField name="avatar" label={t.dash.profilePhoto} defaultValue={m.avatar} />
-          <ImageField name="cover" label={t.dash.coverImage} defaultValue={m.cover} shape="wide" hint={t.dash.coverHint} />
-        </div>
-        <GalleryField name="photos" defaultValue={m.photos} />
-      </Card>
+    <form ref={form} action={action} onInput={update} onChange={update} className="space-y-5">
+      <div className="sm:sticky sm:top-[4.5rem] sm:z-20">
+        <CompletionMeter items={items} labels={labels} />
+      </div>
 
-      <Card title={t.dash.basics}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={t.dash.artistName}><input name="name" defaultValue={m.name} required className="input" /></Field>
-          <Field label={t.dash.tagline} hint={t.dash.taglineHint}><input name="tagline" defaultValue={m.tagline} maxLength={140} className="input" /></Field>
-          <Field label={t.dash.performerType}>
-            <select name="performer_type" defaultValue={m.performer_type} className="input">{PERFORMER_TYPES.map((p) => <option key={p} value={p}>{L(p)}</option>)}</select>
-          </Field>
-          <Field label={t.dash.basedIn}>
-            <select name="location" defaultValue={m.location} className="input">{LOCATIONS.map((p) => <option key={p} value={p}>{L(p)}</option>)}</select>
-          </Field>
-          <Field label={t.dash.yearsPerforming}><input name="years_active" type="number" min={0} defaultValue={m.years_active} className="input" /></Field>
-          <Field label={t.dash.members}><input name="members" type="number" min={1} defaultValue={m.members} className="input" /></Field>
-        </div>
-        <ChipGroup name="genres" label={t.common.genres} options={GENRES} defaultValue={m.genres} />
-        <ChipGroup name="event_types" label={t.dash.eventsYouPlay} options={EVENT_TYPES} defaultValue={m.event_types} tone="flame" />
-      </Card>
-
-      <Card title={t.dash.yourStory}>
-        <Field label={t.dash.biography}><textarea name="bio" rows={6} defaultValue={m.bio} className="input" placeholder={t.dash.bioPh} /></Field>
-        <Field label={t.dash.experienceLabel}><textarea name="experience" rows={3} defaultValue={m.experience} className="input" placeholder={t.dash.experiencePh} /></Field>
-        <Field label={t.dash.performancesLabel} hint={t.dash.performancesHint}><textarea name="performances" rows={4} defaultValue={m.performances.join("\n")} className="input" /></Field>
-        <Field label={t.dash.languages} hint={t.dash.commaSeparated}><input name="languages" defaultValue={m.languages.join(", ")} className="input" /></Field>
-      </Card>
-
-      <Card title={t.dash.rates} desc={t.dash.ratesDesc}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={t.dash.priceFrom}><input name="price_from" type="number" min={0} defaultValue={m.price_from || ""} className="input" /></Field>
-          <Field label={t.dash.priceTo}><input name="price_to" type="number" min={0} defaultValue={m.price_to ?? ""} className="input" /></Field>
-          <Field label={t.dash.hourlyRate}><input name="hourly_rate" type="number" min={0} defaultValue={m.hourly_rate ?? ""} className="input" /></Field>
-        </div>
-      </Card>
-
-      <Card title={t.dash.musicVideo} desc={t.dash.musicVideoDesc}>
-        <Field label={t.dash.audioSamples} hint={t.dash.audioHint}>
-          <textarea name="tracks" rows={3} defaultValue={m.tracks.map((t) => [t.title, t.url, t.duration].filter(Boolean).join(" | ")).join("\n")} className="input font-mono text-xs" />
+      {/* 1–2: name + photo */}
+      <Section title={t.pf.secPhoto}>
+        <ImageField id="pf-photo" name="avatar" label={t.pf.photo} defaultValue={m.avatar} hint={t.pf.photoHint} round />
+        <Field id="pf-name" label={t.pf.artistName} required>
+          <input name="name" defaultValue={m.name} required minLength={2} maxLength={120} autoComplete="organization" className="input" />
         </Field>
-        <Field label={t.dash.videoLinks} hint={t.dash.videoHint}>
-          <textarea name="videos" rows={3} defaultValue={m.videos.join("\n")} className="input font-mono text-xs" placeholder="https://www.youtube.com/watch?v=…&#10;https://open.spotify.com/artist/…" />
-        </Field>
-      </Card>
+      </Section>
 
-      <Card title={t.dash.contactDetails} desc={t.dash.contactDescM}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={t.dash.phone}><input name="phone" defaultValue={m.phone ?? ""} className="input" placeholder="+357 …" /></Field>
-          <Field label={t.dash.bookingEmail}><input name="public_email" type="email" defaultValue={m.public_email ?? ""} className="input" /></Field>
-          <Field label={t.dash.website}><input name="website" defaultValue={m.website ?? ""} className="input" /></Field>
-          <Field label="Instagram"><input name="instagram" defaultValue={m.instagram ?? ""} className="input" placeholder="@yourhandle" /></Field>
+      {/* 3–5: location, bio, type */}
+      <Section title={t.pf.secAbout}>
+        <ChoiceChips id="pf-type" name="performer_type" label={t.pf.artistType} options={PERFORMER_TYPES} defaultValue={m.performer_type} required />
+        <LocationFields id="pf-location" country={m.country} city={m.location} />
+        <Field id="pf-bio" label={t.pf.bio} counter={t.pf.chars(bio.length, BIO_MAX)}>
+          <textarea name="bio" rows={5} maxLength={BIO_MAX} value={bio} onChange={(e) => setBio(e.target.value)} className="input" placeholder={t.pf.bioPh} />
+        </Field>
+      </Section>
+
+      {/* 6–8: genres, links, photos */}
+      <Section title={t.pf.secMusic}>
+        <div id="pf-genres" className="scroll-mt-28">
+          <ChipGroup name="genres" label={t.pf.genres} options={GENRES} defaultValue={m.genres} />
+          <p className="mt-2 text-xs text-muted">{t.pf.genresHint}</p>
         </div>
-      </Card>
-      <SaveBar state={state} />
+        <LinksField id="pf-links" defaultValue={m.videos} />
+        <GalleryField id="pf-photos" name="photos" label={t.pf.morePhotos} hint={t.pf.morePhotosHint} defaultValue={m.photos} />
+      </Section>
+
+      {/* 9–10: contact, availability */}
+      <Section title={t.pf.secContact}>
+        <div id="pf-contact" className="scroll-mt-28">
+          <p className="-mt-2 mb-4 text-sm text-muted">{t.pf.contactHintArtist}</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label={t.pf.email}>
+              <input name="public_email" type="email" inputMode="email" autoComplete="email" defaultValue={m.public_email ?? ""} className="input" />
+            </Field>
+            <Field label={t.pf.phone}>
+              <input name="phone" type="tel" inputMode="tel" autoComplete="tel" defaultValue={m.phone ?? ""} className="input" placeholder="+357 …" />
+            </Field>
+          </div>
+        </div>
+        <YesNo name="available" label={t.pf.available} defaultValue={m.available !== 0} yes={t.pf.availableYes} no={t.pf.availableNo} />
+      </Section>
+
+      <SaveBar state={state} items={items} />
     </form>
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Venue / business                                                     */
+/* ------------------------------------------------------------------ */
+
 export function BusinessProfileForm({ b }: { b: Business }) {
+  const { t } = useI18n();
   const [state, action] = useActionState(saveBusinessProfile, undefined);
-  const { t, L } = useI18n();
+  const [desc, setDesc] = useState(b.description);
+  const compute = useCallback(
+    (fd: FormData) =>
+      venueCompletion({
+        name: String(fd.get("name") ?? ""),
+        logo: String(fd.get("logo") ?? ""),
+        location: cityOf(fd),
+        address: String(fd.get("address") ?? ""),
+        description: String(fd.get("description") ?? ""),
+        category: String(fd.get("category") ?? ""),
+        music_wanted: nonEmpty(fd, "music_wanted"),
+        artist_types: nonEmpty(fd, "artist_types"),
+        photos: photoLines(fd),
+        phone: String(fd.get("phone") ?? ""),
+        public_email: String(fd.get("public_email") ?? ""),
+      }),
+    [],
+  );
+  const { form, items, update } = useLiveCompletion(compute, venueCompletion(b));
+  const labels = { ...t.pf.item, type: t.pf.venueType } as Record<string, string>;
+
   return (
-    <form action={action} className="space-y-6">
-      <Card title={t.dash.branding}>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <ImageField name="logo" label={t.dash.logo} defaultValue={b.logo} />
-          <ImageField name="cover" label={t.dash.coverPhoto} defaultValue={b.cover} shape="wide" hint={t.dash.coverHintB} />
+    <form ref={form} action={action} onInput={update} onChange={update} className="space-y-5">
+      <div className="sm:sticky sm:top-[4.5rem] sm:z-20">
+        <CompletionMeter items={items} labels={labels} />
+      </div>
+
+      {/* 1–5: name, logo, location, description, type */}
+      <Section title={t.pf.secVenue}>
+        <ImageField id="pf-logo" name="logo" label={t.pf.logo} defaultValue={b.logo} hint={t.pf.logoHint} />
+        <Field id="pf-name" label={t.pf.venueName} required>
+          <input name="name" defaultValue={b.name} required minLength={2} maxLength={120} autoComplete="organization" className="input" />
+        </Field>
+        <ChoiceChips id="pf-type" name="category" label={t.pf.venueType} options={BUSINESS_CATEGORIES} defaultValue={b.category} required />
+        <LocationFields id="pf-location" country={b.country} city={b.location} />
+        <Field label={t.pf.address}>
+          <input name="address" defaultValue={b.address ?? ""} autoComplete="street-address" className="input" placeholder={t.pf.addressPh} />
+        </Field>
+        <Field id="pf-description" label={t.pf.description} counter={t.pf.chars(desc.length, BIO_MAX)}>
+          <textarea name="description" rows={5} maxLength={BIO_MAX} value={desc} onChange={(e) => setDesc(e.target.value)} className="input" placeholder={t.pf.descriptionPh} />
+        </Field>
+      </Section>
+
+      {/* 6–8: genres, artist types, photos */}
+      <Section title={t.pf.secWanted}>
+        <div id="pf-genres" className="scroll-mt-28">
+          <ChipGroup name="music_wanted" label={t.pf.genresPreferred} options={GENRES} defaultValue={b.music_wanted} />
         </div>
-      </Card>
-      <Card title={t.dash.aboutBusiness}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={t.dash.businessName}><input name="name" defaultValue={b.name} required className="input" /></Field>
-          <Field label={t.dash.category}>
-            <select name="category" defaultValue={b.category} className="input">{BUSINESS_CATEGORIES.map((p) => <option key={p} value={p}>{L(p)}</option>)}</select>
-          </Field>
-          <Field label={t.common.location}>
-            <select name="location" defaultValue={b.location} className="input">{LOCATIONS.map((p) => <option key={p} value={p}>{L(p)}</option>)}</select>
-          </Field>
-          <Field label={t.dash.address}><input name="address" defaultValue={b.address ?? ""} className="input" /></Field>
-          <Field label={t.dash.capacity}><input name="capacity" type="number" min={0} defaultValue={b.capacity ?? ""} className="input" /></Field>
+        <div id="pf-artistTypes" className="scroll-mt-28">
+          <ChipGroup name="artist_types" label={t.pf.artistTypes} options={PERFORMER_TYPES} defaultValue={b.artist_types} tone="flame" />
         </div>
-        <Field label={t.dash.description}><textarea name="description" rows={5} defaultValue={b.description} className="input" placeholder={t.dash.businessDescPh} /></Field>
-      </Card>
-      <Card title={t.dash.musicLooking}>
-        <ChipGroup name="music_wanted" label={t.common.genres} options={GENRES} defaultValue={b.music_wanted} />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={t.dash.budgetPerfFrom}><input name="budget_min" type="number" min={0} defaultValue={b.budget_min ?? ""} className="input" /></Field>
-          <Field label={t.dash.budgetPerfTo}><input name="budget_max" type="number" min={0} defaultValue={b.budget_max ?? ""} className="input" /></Field>
+        <GalleryField id="pf-photos" name="photos" label={t.pf.venuePhotos} hint={t.pf.venuePhotosHint} defaultValue={b.photos} />
+      </Section>
+
+      {/* 9–10: contact, looking */}
+      <Section title={t.pf.secContact}>
+        <div id="pf-contact" className="scroll-mt-28">
+          <p className="-mt-2 mb-4 text-sm text-muted">{t.pf.contactHintVenue}</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label={t.pf.email}>
+              <input name="public_email" type="email" inputMode="email" autoComplete="email" defaultValue={b.public_email ?? ""} className="input" />
+            </Field>
+            <Field label={t.pf.phone}>
+              <input name="phone" type="tel" inputMode="tel" autoComplete="tel" defaultValue={b.phone ?? ""} className="input" placeholder="+357 …" />
+            </Field>
+          </div>
         </div>
-      </Card>
-      <Card title={t.dash.contactInfo} desc={t.dash.contactDescB}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Field label={t.dash.phone}><input name="phone" defaultValue={b.phone ?? ""} className="input" /></Field>
-          <Field label={t.auth.email}><input name="public_email" type="email" defaultValue={b.public_email ?? ""} className="input" /></Field>
-          <Field label={t.dash.website}><input name="website" defaultValue={b.website ?? ""} className="input" /></Field>
-        </div>
-      </Card>
-      <SaveBar state={state} />
+        <YesNo name="looking" label={t.pf.looking} defaultValue={b.looking !== 0} yes={t.pf.lookingYes} no={t.pf.lookingNo} />
+      </Section>
+
+      <SaveBar state={state} items={items} />
     </form>
   );
 }
