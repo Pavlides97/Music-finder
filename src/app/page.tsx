@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ArrowRight, CalendarCheck, Headphones, MessageCircle, Mic2, Search, Sparkles, Store, UserRoundPlus, Wallet } from "lucide-react";
 import { HeroSearch } from "@/components/home/HeroSearch";
 import { HeroScene } from "@/components/three/HeroScene";
+import { CyprusMap } from "@/components/home/CyprusMap";
+import { db } from "@/lib/db";
 import { GigCard, MusicianCard } from "@/components/cards";
 import { Tilt } from "@/components/ui/Tilt";
 import { featuredMusicians, genreCounts, platformStats, upcomingGigs } from "@/lib/data";
@@ -16,6 +18,9 @@ export default async function Home() {
   const gigs = upcomingGigs(3);
   const stats = platformStats();
   const counts = Object.fromEntries(genreCounts().map((g) => [g.genre, g.n]));
+  const byCity = Object.fromEntries(
+    (db().prepare("SELECT location, COUNT(*) AS n FROM musicians GROUP BY location").all() as { location: string; n: number }[]).map((r) => [r.location, Number(r.n)]),
+  );
 
   return (
     <>
@@ -89,6 +94,11 @@ export default async function Home() {
             </Tilt>
           ))}
         </div>
+      </section>
+
+      {/* ---------------- MAP ---------------- */}
+      <section className="container-x pb-24">
+        <CyprusMap counts={byCity} />
       </section>
 
       {/* ---------------- GIGS ---------------- */}

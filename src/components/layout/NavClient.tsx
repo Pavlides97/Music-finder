@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, LayoutDashboard, LogOut, Menu, Sparkles, User, X } from "lucide-react";
 import { logoutAction } from "@/app/actions";
 import { useI18n } from "@/lib/i18n/client";
@@ -58,8 +59,10 @@ export function MobileMenu({ loggedIn }: { loggedIn: boolean }) {
       <button className="btn-quiet xl:hidden" onClick={() => setOpen(true)} aria-label={t.common.openMenu} aria-expanded={open}>
         <Menu className="h-5 w-5" />
       </button>
-      {open && (
-        <div className="fixed inset-0 z-[60] bg-ink/95 backdrop-blur-xl xl:hidden">
+      {open &&
+        createPortal(
+        // Portal: the header's backdrop-filter would otherwise trap this fixed overlay inside it.
+        <div className="fixed inset-0 z-[60] overflow-y-auto bg-ink/[0.97] backdrop-blur-xl xl:hidden" role="dialog" aria-modal="true">
           <div className="container-x flex h-16 items-center justify-between">
             <LangSwitch />
             <button className="btn-quiet" onClick={() => setOpen(false)} aria-label={t.common.closeMenu}>
@@ -84,8 +87,9 @@ export function MobileMenu({ loggedIn }: { loggedIn: boolean }) {
               </div>
             )}
           </nav>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   );
 }

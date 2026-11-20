@@ -30,6 +30,10 @@
     color-scheme: dark;
     -webkit-tap-highlight-color: transparent;
   }
+  html,
+  body {
+    overflow-x: clip;
+  }
   body {
     @apply bg-night text-fg font-sans antialiased;
     font-feature-settings: "ss01", "cv11";
