@@ -14,13 +14,13 @@ RUN npm run build
 FROM node:22-slim AS run
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
-# Database + uploaded photos live here — mount a persistent volume on /app/data.
+# Database + uploaded photos live here — attach a persistent volume at /app/data
+# (Railway: service → Settings → Volumes; mount path /app/data). Runs as root so the
+# mounted volume is writable on hosts like Railway.
 ENV DATABASE_PATH=/app/data/soundcy.db
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
-RUN mkdir -p /app/data && chown -R node:node /app
-USER node
-VOLUME ["/app/data"]
+RUN mkdir -p /app/data
 EXPOSE 3000
 CMD ["node", "--no-warnings=ExperimentalWarning", "server.js"]

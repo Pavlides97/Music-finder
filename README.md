@@ -40,7 +40,14 @@ npm run build && npm start
 
 The site stores its database and uploaded photos on disk, so it needs a host with a **persistent disk**.
 
-### Option A: Render (easiest)
+### Option A: Railway
+1. In Railway: **New Project → Deploy from GitHub repo → Music-finder**. Railway builds it with the included `Dockerfile` (`railway.json`).
+2. **Add a volume:** open the service → **Settings → Volumes → Add volume**, mount path **`/app/data`**. Without it, the database and uploaded photos are wiped on every redeploy.
+3. **Public address:** **Settings → Networking → Generate Domain**.
+4. **Variables:** add `SITE_URL` = that address (e.g. `https://music-finder-production.up.railway.app`).
+5. Every push to `main` redeploys automatically.
+
+### Option B: Render
 1. Create an account at [render.com](https://render.com) and connect your GitHub account.
 2. Click **New → Blueprint** and choose this repository. Render reads `render.yaml` and sets up the app plus a 1 GB disk for the data.
 3. When asked for `SITE_URL`, enter the address Render gives you (e.g. `https://soundcy.onrender.com`), or your own domain later.
@@ -48,7 +55,7 @@ The site stores its database and uploaded photos on disk, so it needs a host wit
 
 Persistent disks require a paid Render instance, from about $7 a month.
 
-### Option B: Railway, Fly.io or your own server
+### Option C: Fly.io or your own server
 Use the included `Dockerfile`. Mount a persistent volume at `/app/data` and set `SITE_URL` to your public address.
 
 ### Your own domain
