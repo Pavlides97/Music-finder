@@ -1,0 +1,14 @@
+# One-click deploy on Render (https://render.com) — "New > Blueprint" and pick this repo.
+services:
+  - type: web
+    name: soundcy
+    runtime: docker
+    plan: starter # persistent disks need a paid instance
+    healthCheckPath: /
+    envVars:
+      - key: SITE_URL
+        sync: false # set to your public address, e.g. https://soundcy.onrender.com
+    disk:
+      name: soundcy-data
+      mountPath: /app/data
+      sizeGB: 1

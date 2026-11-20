@@ -1,41 +1,61 @@
 # SoundCY — Where Cyprus Finds Its Sound
 
-A two-sided music booking marketplace for Cyprus. Restaurants, hotels, bars, clubs, wedding planners, event organisers and festivals find and book musicians. Singers, bands, DJs, instrumentalists and orchestras get discovered, apply to gigs and manage bookings.
+A two-sided music booking marketplace for Cyprus. Restaurants, hotels, bars, clubs, wedding planners, event organisers and festivals find and book musicians. Singers, bands, DJs and instrumentalists get discovered, apply to gigs and manage bookings.
+
+Available in **Greek, English and Russian**, and it works on desktops, laptops, iPads and phones.
 
 > Musician profiles are real artists listed with their approval. Venues, gigs and the demo venue login are fictional sample data.
 
-## Quick start
+## Highlights
 
-Requires **Node.js 22.13+**, which includes the built-in `node:sqlite` module, so there are no native database dependencies.
+- **Interactive 3D design:** a WebGL "sound sphere" on the homepage, cards that tilt in 3D, and a 3D map of Cyprus with city pins.
+- **"Match me" smart matcher** (`/match`): four quick questions (occasion, city, sound, date and budget) return musicians ranked with a match percentage and plain-language reasons. The scoring is transparent: genres 40%, distance between Cyprus cities 25%, budget 20%, event type 10%, reviews 5%. Musicians busy on the chosen date go to the end.
+- **Three languages:** the ΕΛ / EN / RU switch is in the header. Visitors get their browser's language automatically. Dates, prices, genres and cities are all localised. Automatic chat messages, such as "Booking confirmed", are shown in each reader's own language. Search understands Greek and Russian words ("λαϊκό", "Лимассол", "γάμος").
+- **Booking and messaging:** venues send booking requests, either side can accept, decline or counter-offer, and the chat updates live.
+- **Gig marketplace:** venues post gigs, musicians apply, and venues shortlist and hire in one click.
+- **Dashboards** for musicians (profile, bookings, applications, availability calendar) and venues (profile, posted gigs, applicants, bookings, saved musicians).
+- **Ready to launch:**
+  - sitemap, robots file and Google structured data (musicians and gig job postings)
+  - share-preview images for WhatsApp and Facebook
+  - installable on a phone's home screen
+  - accessibility-checked with axe-core, with no violations
+
+## Run it locally
+
+You need **Node.js 22.13 or later**.
 
 ```bash
 npm install
 npm run dev        # http://localhost:3000
 ```
 
-On first request, the app creates the database in `data/soundcy.db` and adds the musician profiles plus sample venues and gigs. Gig dates are relative to today, so the demo always looks current.
-
-Musician profiles start with only a name, performer type and "Price on request". Their accounts have random passwords, so nobody can log in as them until the profile is handed over to the musician.
-
-**Demo venue account** (use the one-click button on `/login`; password `demo1234`): The Old Port Bistro, `oldport@demo.soundcy.app`. Every other sample venue also has a `@demo.soundcy.app` login.
+The database is created automatically in `data/soundcy.db`. Demo venue login: the **The Old Port Bistro** button on `/login` (password `demo1234`).
 
 ```bash
-npm run db:reset   # wipe the DB; it is re-seeded on the next start
-npm run build && npm start   # production
+npm run db:reset   # start again with fresh sample data (restart the server afterwards)
+npm run build && npm start
 ```
 
-## Features
+## Put it online (step by step)
 
-- **Homepage**: hero with "Where Cyprus Finds Its Sound.", Find Musicians and Find Gigs buttons, and a search by location, genre, event type and date. Also featured artists, popular categories, upcoming gigs, how-it-works for both sides, locations and venues.
-- **Musician profiles**: cover image and photo, bio, experience, genres, location, audio player, YouTube and Spotify embeds, gallery, performances offered, prices from and per hour, availability calendar, booking request form, message and save buttons, and reviews with a rating breakdown.
-- **Business and venue profiles**: logo, cover, category, location, description, music wanted, budget range, capacity, open gigs and contact details.
-- **Musician directory**: filters for location, genre, performer type, event type, budget and "available on" date, plus free-text search and sorting. Filters live in the URL, so a search can be shared.
-- **Gig marketplace**: listings show date and time, location, genres, performer type, budget, description, deadline and applicant count. Musicians apply with a quote and a message.
-- **Booking and messaging**: a booking request opens a conversation. Either side can accept, decline or counter-offer the price, and the turn passes back and forth. After confirmation the booking can be cancelled or marked complete, and once it's complete the business can leave a verified review. Chat updates every 4 seconds and shows unread counts.
-- **Dashboards**
-  - *Musician*: overview, a profile-completeness checklist, profile editor with image uploads, bookings, applications, availability calendar (blocked dates are left out of date searches) and matching gigs.
-  - *Business*: overview, venue profile, posted gigs with an applicant pipeline (shortlist, hire, decline; hiring creates a confirmed booking), gig posting, bookings, saved musicians and recommended musicians.
-- **Auth**: email and password accounts (scrypt hashing), httpOnly session cookies stored in a database table, and role-based access checks in every server action.
+The site stores its database and uploaded photos on disk, so it needs a host with a **persistent disk**.
+
+### Option A: Render (easiest)
+1. Create an account at [render.com](https://render.com) and connect your GitHub account.
+2. Click **New → Blueprint** and choose this repository. Render reads `render.yaml` and sets up the app plus a 1 GB disk for the data.
+3. When asked for `SITE_URL`, enter the address Render gives you (e.g. `https://soundcy.onrender.com`), or your own domain later.
+4. Click **Apply**. The first deploy takes a few minutes. After that, every push to `main` redeploys automatically.
+
+Persistent disks require a paid Render instance, from about $7 a month.
+
+### Option B: Railway, Fly.io or your own server
+Use the included `Dockerfile`. Mount a persistent volume at `/app/data` and set `SITE_URL` to your public address.
+
+### Your own domain
+Buy a domain (e.g. `soundcy.com` or `soundcy.com.cy`) and add it in your host's dashboard under **Custom domains**. Then update `SITE_URL`.
+
+### Getting found on Google
+After going live, add the site to [Google Search Console](https://search.google.com/search-console) and submit `https://YOUR-DOMAIN/sitemap.xml`.
 
 ## Architecture
 
@@ -43,24 +63,27 @@ npm run build && npm start   # production
 src/
   app/                 Next.js 15 App Router pages (server components)
     actions.ts         All mutations as server actions (validated, auth-checked)
+    match/             Smart matcher
     api/               Chat polling, image upload/serve
-  components/          UI (cards, search filters, profile, chat, dashboard)
+    sitemap.ts robots.ts manifest.ts opengraph-image.tsx
+  components/          UI (cards, 3D scene, map, filters, profile, chat, dashboard)
   lib/
-    db.ts              SQLite connection + schema (node:sqlite)
-    data.ts            All read queries (repository layer)
-    seed.ts            Sample Cyprus data
-    auth.ts            Sessions & viewer helpers
+    db.ts              SQLite connection, schema + migrations (node:sqlite)
+    data.ts            Read queries (repository layer)
+    match.ts           Matching/scoring engine
+    i18n/              Dictionaries: sections/* (English+Greek pairs), ru/* (Russian, type-checked)
+    seed*.ts           Musician roster + sample venues/gigs (EN/EL/RU)
+    cyprus-map.ts      Island outline generated by scripts/gen-cyprus-map.mjs
 ```
 
-- **Stack**: Next.js 15, React 19, TypeScript, Tailwind CSS v4, lucide icons.
-- **Data layer**: all SQL sits behind plain functions in `lib/data.ts` and `actions.ts`. Moving to Postgres (for example with Drizzle or Prisma on Neon or Supabase) means replacing `db.ts` and the queries, not the UI.
-- **Uploads** are stored in `data/uploads/` and served from `/api/uploads/*`. Swap in S3 or Cloudflare R2 for production.
-- **Images** in the sample data load from Unsplash. If an image fails, the page shows a branded gradient instead.
+- **Stack:** Next.js 15, React 19, TypeScript, Tailwind CSS v4, three.js and lucide icons.
+- **Translations:** Greek is stored next to English in `src/lib/i18n/sections/*`. Russian lives in `src/lib/i18n/ru/*` and is checked against English at build time, so a missing translation fails the build.
+- **Data:** all SQL is behind plain functions, so moving to Postgres later only means changing `db.ts` and the queries, not the pages.
 
-## Deploying
+## Next steps
 
-The MVP keeps its database and uploads on local disk, so it needs a host with a persistent volume, such as Railway, Fly.io, Render or a VPS. Set `DATABASE_PATH` to change where the database file lives. Session cookies are `Secure` in production; set `INSECURE_COOKIES=1` only if you are testing production mode over plain HTTP. For serverless hosts such as Vercel, move to Postgres and object storage first.
-
-## Suggested next steps
-
-Payments and deposits (Stripe or JCC), email and SMS notifications, admin verification tools, Greek-language support, WebSocket chat, and calendar export (ICS).
+- Photos, bios and audio for each musician.
+- Musicians claiming their profile with their own login.
+- Payments and deposits (Stripe or JCC).
+- Email and SMS notifications.
+- An admin panel for verification.
