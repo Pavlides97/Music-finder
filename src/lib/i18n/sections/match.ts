@@ -20,7 +20,7 @@ export const match = {
   skip: ["Skip", "Παράλειψη"],
   showMatches: ["Show my matches", "Δες τα αποτελέσματα"],
   resultsEyebrow: ["Your matches", "Τα αποτελέσματά σου"],
-  resultsTitle: [(n: number) => `${n} musicians ranked for you`, (n: number) => `${n} μουσικοί κατάταξης για σένα`],
+  resultsTitle: [(n: number) => `${n} musicians ranked for you`, (n: number) => `${n} μουσικοί που ταιριάζουν σε σένα`],
   summary: ["Based on", "Με βάση"],
   edit: ["Edit answers", "Αλλαγή απαντήσεων"],
   startOver: ["Start over", "Από την αρχή"],
