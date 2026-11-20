@@ -28,6 +28,8 @@ import { BookingPanel } from "@/components/profile/BookingPanel";
 import { MusicianCard } from "@/components/cards";
 import { startConversationAction, toggleSaveAction } from "@/app/actions";
 import { getI18n } from "@/lib/i18n/server";
+import { JsonLd } from "@/components/JsonLd";
+import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -51,8 +53,21 @@ export default async function MusicianProfile({ params }: { params: Promise<{ sl
   const embeds = m.videos.map(toEmbed).filter(Boolean) as NonNullable<ReturnType<typeof toEmbed>>[];
   const dist = [5, 4, 3, 2, 1].map((s) => reviews.filter((r) => r.rating === s).length);
 
+  const ld = {
+    "@context": "https://schema.org",
+    "@type": m.members > 1 ? "MusicGroup" : "Person",
+    name: m.name,
+    url: `${SITE_URL}/musicians/${m.slug}`,
+    description: m.bio || m.tagline || undefined,
+    ...(m.members > 1 ? { genre: m.genres } : { jobTitle: m.tagline || m.performer_type, knowsAbout: m.genres }),
+    address: { "@type": "PostalAddress", addressLocality: m.location, addressCountry: "CY" },
+    ...(m.price_from ? { makesOffer: { "@type": "Offer", priceCurrency: "EUR", price: m.price_from, ...(m.price_to ? { priceSpecification: { "@type": "PriceSpecification", minPrice: m.price_from, maxPrice: m.price_to, priceCurrency: "EUR" } } : {}) } } : {}),
+    ...(m.review_count ? { aggregateRating: { "@type": "AggregateRating", ratingValue: m.rating, reviewCount: m.review_count } } : {}),
+  };
+
   return (
     <div>
+      <JsonLd data={ld} />
       {/* Cover */}
       <section className="relative h-[280px] sm:h-[380px]">
         <Photo src={m.cover} alt={t.profile.performing(m.name)} label="" w={1800} className="absolute inset-0" />

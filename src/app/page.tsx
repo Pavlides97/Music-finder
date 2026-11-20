@@ -6,6 +6,7 @@ import { CyprusMap } from "@/components/home/CyprusMap";
 import { db } from "@/lib/db";
 import { GigCard, MusicianCard } from "@/components/cards";
 import { Tilt } from "@/components/ui/Tilt";
+import { Reveal } from "@/components/ui/Reveal";
 import { featuredMusicians, genreCounts, platformStats, upcomingGigs } from "@/lib/data";
 import { CATEGORY_TILES } from "@/lib/constants";
 import { getI18n } from "@/lib/i18n/server";
@@ -69,7 +70,9 @@ export default async function Home() {
         <SectionHead eyebrow={t.home.featuredEyebrow} title={t.home.featuredTitle} href="/musicians" cta={t.home.allMusicians} />
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {featured.map((m, i) => (
-            <MusicianCard key={m.id} m={m} priority={i < 4} />
+            <Reveal key={m.id} delay={(i % 4) * 90} className="h-full">
+              <MusicianCard m={m} priority={i < 4} />
+            </Reveal>
           ))}
         </div>
       </section>
@@ -78,8 +81,9 @@ export default async function Home() {
       <section className="container-x pb-20">
         <SectionHead eyebrow={t.home.genresEyebrow} title={t.home.genresTitle} />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {CATEGORY_TILES.map((c) => (
-            <Tilt key={c.genre} className="rounded-2xl" max={10}>
+          {CATEGORY_TILES.map((c, i) => (
+            <Reveal key={c.genre} delay={(i % 4) * 70}>
+            <Tilt className="rounded-2xl" max={10}>
               <Link href={`/musicians?genre=${encodeURIComponent(c.genre)}`} className="elevated group relative flex h-full items-center gap-4 overflow-hidden rounded-2xl border border-line p-4 sm:p-5">
                 <span
                   className="orb h-12 w-12 shrink-0 transition duration-500 group-hover:scale-110 sm:h-14 sm:w-14"
@@ -92,21 +96,26 @@ export default async function Home() {
                 </span>
               </Link>
             </Tilt>
+            </Reveal>
           ))}
         </div>
       </section>
 
       {/* ---------------- MAP ---------------- */}
       <section className="container-x pb-24">
-        <CyprusMap counts={byCity} />
+        <Reveal>
+          <CyprusMap counts={byCity} />
+        </Reveal>
       </section>
 
       {/* ---------------- GIGS ---------------- */}
       <section className="container-x pb-20">
         <SectionHead eyebrow={t.home.gigsEyebrow} title={t.home.gigsTitle} href="/gigs" cta={t.home.allGigs} />
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {gigs.map((g) => (
-            <GigCard key={g.id} g={g} compact />
+          {gigs.map((g, i) => (
+            <Reveal key={g.id} delay={i * 90} className="h-full">
+              <GigCard g={g} compact />
+            </Reveal>
           ))}
         </div>
       </section>
@@ -117,7 +126,7 @@ export default async function Home() {
           <p className="eyebrow">{t.home.howEyebrow}</p>
           <h2 className="display mt-3 text-4xl font-extrabold sm:text-5xl">{t.home.howTitle}</h2>
         </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Reveal className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <HowColumn
             tone="flame"
             icon={<Store className="h-6 w-6" />}
@@ -140,7 +149,7 @@ export default async function Home() {
             ]}
             cta={{ href: "/signup?role=musician", label: t.home.createArtist }}
           />
-        </div>
+        </Reveal>
       </section>
 
       {/* ---------------- CTA ---------------- */}

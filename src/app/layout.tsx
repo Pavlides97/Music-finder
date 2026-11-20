@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { I18nProvider } from "@/lib/i18n/client";
 import { getI18n } from "@/lib/i18n/server";
+import { SITE_URL } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang } = await getI18n();
@@ -13,7 +14,16 @@ export async function generateMetadata(): Promise<Metadata> {
     ru: ["SoundCY — Здесь Кипр находит свой звук", "Находите музыкантов. Находите выступления. Создавайте незабываемые события. Площадка для бронирования музыкантов на Кипре."],
   } as const;
   const [title, description] = META[lang];
-  return { title: { default: title, template: "%s · SoundCY" }, description };
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: { default: title, template: "%s · SoundCY" },
+    description,
+    applicationName: "SoundCY",
+    appleWebApp: { capable: true, title: "SoundCY", statusBarStyle: "black-translucent" },
+    icons: { apple: "/icons/apple-touch-icon.png" },
+    openGraph: { type: "website", siteName: "SoundCY", title, description, locale: lang === "el" ? "el_GR" : lang === "ru" ? "ru_RU" : "en_GB" },
+    twitter: { card: "summary_large_image", title, description },
+  };
 }
 
 export const viewport: Viewport = { themeColor: "#0b0d15", width: "device-width", initialScale: 1 };
@@ -30,6 +40,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           href="https://fonts.googleapis.com/css2?family=Commissioner:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        <noscript>
+          <style>{"[data-reveal]{opacity:1!important;transform:none!important}"}</style>
+        </noscript>
       </head>
       <body className="min-h-dvh">
         <I18nProvider lang={lang}>

@@ -59,6 +59,7 @@ export default async function GigsPage({ searchParams }: { searchParams: Promise
           />
         </Suspense>
       </div>
+      <h2 className="sr-only">{gigs.length} {t.dir.gigCount(gigs.length)}</h2>
       {gigs.length ? (
         <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {gigs.map((g) => <GigCard key={g.id} g={g} />)}

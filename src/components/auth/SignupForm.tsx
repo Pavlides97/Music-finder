@@ -86,7 +86,7 @@ export function SignupForm({ initialRole }: { initialRole: "musician" | "busines
         <input name="password" type="password" required minLength={8} autoComplete="new-password" className="input" placeholder={t.auth.pwPh} />
       </label>
       <FormMessage state={state} />
-      <SubmitButton className={cn("btn-lg w-full", isM && "!bg-violet !text-white hover:!bg-violet-2")} pendingText={t.auth.creating}>
+      <SubmitButton className={cn("btn-lg w-full", isM && "!bg-[#7c3aed] !text-white hover:!bg-[#6d28d9]")} pendingText={t.auth.creating}>
         {isM ? t.auth.createArtist : t.auth.createVenue}
       </SubmitButton>
       <p className="text-center text-[11px] text-dim">{t.auth.terms}</p>

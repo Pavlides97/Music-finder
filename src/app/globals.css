@@ -13,7 +13,7 @@
   --color-line-strong: rgb(255 255 255 / 0.14);
   --color-fg: #f5f2ec;
   --color-muted: #9da3b8;
-  --color-dim: #6b7189;
+  --color-dim: #878da4;
 
   --color-flame: #ff7a1a;
   --color-flame-2: #ff9a4a;
@@ -80,7 +80,7 @@
 }
 
 @utility btn-violet {
-  @apply btn bg-violet text-white hover:bg-violet-2 shadow-[0_8px_30px_-8px_rgb(139_92_246/0.6)];
+  @apply btn bg-[#7c3aed] text-white hover:bg-[#6d28d9] shadow-[0_8px_30px_-8px_rgb(139_92_246/0.6)];
 }
 
 @utility btn-ghost {
@@ -231,4 +231,18 @@ select.input {
 }
 @media (prefers-reduced-motion: reduce) {
   [class*="animate-[stepIn"] { animation: none !important; }
+}
+
+/* ---------- scroll reveal ---------- */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+[data-reveal="in"] {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; transition: none; }
 }

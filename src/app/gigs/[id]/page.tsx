@@ -10,6 +10,8 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { ApplyForm } from "@/components/ApplyForm";
 import { GigCard } from "@/components/cards";
 import { getI18n } from "@/lib/i18n/server";
+import { JsonLd } from "@/components/JsonLd";
+import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -40,8 +42,25 @@ export default async function GigPage({ params }: { params: Promise<{ id: string
     [Euro, t.common.budget, budget(g.budget_min, g.budget_max)],
   ] as const;
 
+  const ld = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: g.title,
+    description: g.description,
+    datePosted: g.created_at.slice(0, 10),
+    validThrough: g.deadline,
+    employmentType: "CONTRACTOR",
+    url: `${SITE_URL}/gigs/${g.id}`,
+    hiringOrganization: { "@type": "Organization", name: g.business_name, sameAs: `${SITE_URL}/venues/${g.business_slug}` },
+    jobLocation: { "@type": "Place", address: { "@type": "PostalAddress", addressLocality: g.location, addressCountry: "CY" } },
+    ...(g.budget_min || g.budget_max
+      ? { baseSalary: { "@type": "MonetaryAmount", currency: "EUR", value: { "@type": "QuantitativeValue", minValue: g.budget_min ?? undefined, maxValue: g.budget_max ?? undefined, unitText: "EVENT" } } }
+      : {}),
+  };
+
   return (
     <div className="container-x py-10">
+      <JsonLd data={ld} />
       <Link href="/gigs" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
         <ArrowLeft className="h-4 w-4" /> {t.gig.allGigs}
       </Link>
@@ -62,17 +81,17 @@ export default async function GigPage({ params }: { params: Promise<{ id: string
             </span>
           </Link>
 
-          <dl className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <ul className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {facts.map(([Icon, k, val]) => (
-              <div key={k} className="flex items-start gap-3 rounded-2xl border border-line bg-surface p-4">
+              <li key={k} className="flex items-start gap-3 rounded-2xl border border-line bg-surface p-4">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-flame/10 text-flame"><Icon className="h-5 w-5" /></span>
                 <div>
-                  <dt className="text-xs text-muted">{k}</dt>
-                  <dd className="font-semibold">{val}</dd>
+                  <p className="text-xs text-muted">{k}</p>
+                  <p className="font-semibold">{val}</p>
                 </div>
-              </div>
+              </li>
             ))}
-          </dl>
+          </ul>
 
           <section className="mt-10">
             <h2 className="display mb-3 text-2xl font-bold">{t.gig.about}</h2>
