@@ -5,6 +5,7 @@ import { BadgeCheck, Building2, Euro, Globe, Mail, MapPin, MessageCircle, Music,
 import { getViewer } from "@/lib/auth";
 import { getBusinessBySlug, gigsForBusiness } from "@/lib/data";
 import { getI18n } from "@/lib/i18n/server";
+import { locale } from "@/lib/i18n/core";
 import { Photo } from "@/components/ui/Photo";
 import { GigCard } from "@/components/cards";
 import { startConversationAction } from "@/app/actions";
@@ -55,7 +56,7 @@ export default async function VenueProfile({ params }: { params: Promise<{ slug:
           <div className="min-w-0 space-y-12">
             <section>
               <h2 className="display mb-4 text-2xl font-bold">{t.profile.about}</h2>
-              <p className="whitespace-pre-line leading-relaxed text-fg/85">{tr(b.description, b.description_el) || t.venue.noDescription}</p>
+              <p className="whitespace-pre-line leading-relaxed text-fg/85">{tr(b.description, b.description_el, b.description_ru) || t.venue.noDescription}</p>
             </section>
             <section>
               <h2 className="display mb-4 text-2xl font-bold">{t.venue.events}</h2>
@@ -86,7 +87,7 @@ export default async function VenueProfile({ params }: { params: Promise<{ slug:
               {b.capacity ? (
                 <div>
                   <p className="label flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> {t.venue.capacity}</p>
-                  <p className="font-semibold">{t.venue.guests(b.capacity.toLocaleString(lang === "el" ? "el-GR" : "en-GB"))}</p>
+                  <p className="font-semibold">{t.venue.guests(b.capacity.toLocaleString(locale(lang)))}</p>
                 </div>
               ) : null}
             </div>

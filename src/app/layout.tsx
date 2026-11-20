@@ -7,16 +7,13 @@ import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { lang } = await getI18n();
-  const el = lang === "el";
-  return {
-    title: {
-      default: el ? "SoundCY — Εκεί που η Κύπρος βρίσκει τον ήχο της" : "SoundCY — Where Cyprus Finds Its Sound",
-      template: "%s · SoundCY",
-    },
-    description: el
-      ? "Ανακάλυψε μουσικούς. Βρες δουλειές. Δημιούργησε αξέχαστες στιγμές. Η πλατφόρμα κρατήσεων μουσικών της Κύπρου."
-      : "Discover musicians. Find gigs. Create unforgettable experiences. The music booking marketplace for Cyprus.",
-  };
+  const META = {
+    en: ["SoundCY — Where Cyprus Finds Its Sound", "Discover musicians. Find gigs. Create unforgettable experiences. The music booking marketplace for Cyprus."],
+    el: ["SoundCY — Εκεί που η Κύπρος βρίσκει τον ήχο της", "Ανακάλυψε μουσικούς. Βρες δουλειές. Δημιούργησε αξέχαστες στιγμές. Η πλατφόρμα κρατήσεων μουσικών της Κύπρου."],
+    ru: ["SoundCY — Здесь Кипр находит свой звук", "Находите музыкантов. Находите выступления. Создавайте незабываемые события. Площадка для бронирования музыкантов на Кипре."],
+  } as const;
+  const [title, description] = META[lang];
+  return { title: { default: title, template: "%s · SoundCY" }, description };
 }
 
 export const viewport: Viewport = { themeColor: "#0b0d15", width: "device-width", initialScale: 1 };

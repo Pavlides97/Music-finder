@@ -84,3 +84,17 @@ export const CATEGORY_TILES: { genre: string; blurb: string; hue: number }[] = [
   { genre: "Rebetiko", blurb: "Taverna blues of the city", hue: 260 },
   { genre: "Paradosiako", blurb: "Traditional Cypriot & Greek", hue: 160 },
 ];
+
+/** Approximate city-centre coordinates [lat, lon], used for distance matching and the map. */
+export const CITY_COORDS: Record<string, [number, number]> = {
+  Nicosia: [35.1856, 33.3823],
+  Limassol: [34.7071, 33.0226],
+  Larnaca: [34.9229, 33.6233],
+  Paphos: [34.7754, 32.4245],
+  "Ayia Napa": [34.9823, 34.001],
+  Protaras: [35.0125, 34.0583],
+  Paralimni: [35.0379, 33.9822],
+  "Polis Chrysochous": [35.0367, 32.4251],
+  Troodos: [34.9396, 32.864],
+  Kyrenia: [35.3417, 33.3192],
+};

@@ -25,14 +25,14 @@ export function NavLinks() {
   const links = useLinks();
   const { t } = useI18n();
   return (
-    <nav className="hidden items-center gap-1 lg:flex" aria-label={t.common.mainNav}>
+    <nav className="hidden items-center gap-1 xl:flex" aria-label={t.common.mainNav}>
       {links.map((l) => (
         <Link
           key={l.href}
           href={l.href}
           aria-current={path.startsWith(l.href) ? "page" : undefined}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition",
+            "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition",
             path.startsWith(l.href) ? "bg-white/[0.07] text-fg" : "text-muted hover:text-fg",
           )}
         >
@@ -55,11 +55,11 @@ export function MobileMenu({ loggedIn }: { loggedIn: boolean }) {
   }, [open]);
   return (
     <>
-      <button className="btn-quiet lg:hidden" onClick={() => setOpen(true)} aria-label={t.common.openMenu} aria-expanded={open}>
+      <button className="btn-quiet xl:hidden" onClick={() => setOpen(true)} aria-label={t.common.openMenu} aria-expanded={open}>
         <Menu className="h-5 w-5" />
       </button>
       {open && (
-        <div className="fixed inset-0 z-[60] bg-ink/95 backdrop-blur-xl lg:hidden">
+        <div className="fixed inset-0 z-[60] bg-ink/95 backdrop-blur-xl xl:hidden">
           <div className="container-x flex h-16 items-center justify-between">
             <LangSwitch />
             <button className="btn-quiet" onClick={() => setOpen(false)} aria-label={t.common.closeMenu}>

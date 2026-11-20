@@ -47,7 +47,7 @@ export default async function MyGigsPage({ searchParams }: { searchParams: Promi
                       <StatusPill status={expired ? "closed" : g.status} />
                       {g.genres.map((x) => <span key={x} className="chip">{L(x)}</span>)}
                     </div>
-                    <h2 className="display mt-2 text-xl font-bold">{tr(g.title, g.title_el)}</h2>
+                    <h2 className="display mt-2 text-xl font-bold">{tr(g.title, g.title_el, g.title_ru)}</h2>
                     <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
                       <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {d(g.event_date)} · {g.start_time}</span>
                       <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {L(g.location)}</span>

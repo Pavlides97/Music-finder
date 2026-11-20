@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const g = getGig(Number((await params).id));
   const { L, tr } = await getI18n();
-  return g ? { title: `${tr(g.title, g.title_el)} — ${L(g.location)}`, description: tr(g.description, g.description_el).slice(0, 160) } : {};
+  return g ? { title: `${tr(g.title, g.title_el, g.title_ru)} — ${L(g.location)}`, description: tr(g.description, g.description_el, g.description_ru).slice(0, 160) } : {};
 }
 
 export default async function GigPage({ params }: { params: Promise<{ id: string }> }) {
@@ -53,7 +53,7 @@ export default async function GigPage({ params }: { params: Promise<{ id: string
             {g.urgent ? <span className="chip border-rose/30 bg-rose/10 text-rose">{t.common.urgent}</span> : null}
             {g.genres.map((x) => <span key={x} className="chip">{L(x)}</span>)}
           </div>
-          <h1 className="display mt-4 text-4xl font-extrabold leading-tight sm:text-5xl">{tr(g.title, g.title_el)}</h1>
+          <h1 className="display mt-4 text-4xl font-extrabold leading-tight sm:text-5xl">{tr(g.title, g.title_el, g.title_ru)}</h1>
           <Link href={`/venues/${g.business_slug}`} className="mt-5 inline-flex items-center gap-3 rounded-2xl border border-line bg-surface p-2 pr-4 hover:border-line-strong">
             <Photo src={g.business_logo} alt={g.business_name} w={120} className="h-11 w-11 rounded-xl" />
             <span>
@@ -76,12 +76,12 @@ export default async function GigPage({ params }: { params: Promise<{ id: string
 
           <section className="mt-10">
             <h2 className="display mb-3 text-2xl font-bold">{t.gig.about}</h2>
-            <p className="whitespace-pre-line leading-relaxed text-fg/85">{tr(g.description, g.description_el)}</p>
+            <p className="whitespace-pre-line leading-relaxed text-fg/85">{tr(g.description, g.description_el, g.description_ru)}</p>
           </section>
 
           <section className="mt-10 rounded-2xl border border-line bg-surface p-6">
             <h2 className="mb-2 font-bold">{t.gig.aboutVenue(g.business_name)}</h2>
-            <p className="line-clamp-3 text-sm text-muted">{tr(biz.description, biz.description_el)}</p>
+            <p className="line-clamp-3 text-sm text-muted">{tr(biz.description, biz.description_el, biz.description_ru)}</p>
             <Link href={`/venues/${g.business_slug}`} className="mt-3 inline-block text-sm font-semibold text-flame hover:underline">{t.gig.viewVenue}</Link>
           </section>
         </div>

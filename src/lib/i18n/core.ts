@@ -3,8 +3,8 @@
  * Dictionaries are written as [English, Greek] pairs so both languages stay in sync;
  * `pick` turns them into one dictionary per language with full type safety.
  */
-export type Lang = "en" | "el";
-export const LANGS: Lang[] = ["en", "el"];
+export type Lang = "en" | "el" | "ru";
+export const LANGS: Lang[] = ["el", "en", "ru"];
 export const LANG_COOKIE = "lang";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -96,8 +96,78 @@ const VALUE_EL: Record<string, string> = {
   Greek_lang: "Ελληνικά",
 };
 
+const VALUE_RU: Record<string, string> = {
+  Laiko: "Лайко",
+  Pop: "Поп",
+  Entexno: "Эндехно",
+  Rock: "Рок",
+  Retro: "Ретро",
+  Rebetiko: "Ребетико",
+  "Palio Laiko": "Старое лайко",
+  Paradosiako: "Традиционная",
+  Jazz: "Джаз",
+  Greek: "Греческая",
+  "Traditional Cypriot": "Кипрская традиционная",
+  Electronic: "Электронная",
+  House: "Хаус",
+  Classical: "Классическая",
+  Acoustic: "Акустика",
+  Latin: "Латино",
+  "Soul & Funk": "Соул и фанк",
+  Blues: "Блюз",
+  Lounge: "Лаунж",
+  "R&B": "R&B",
+  Folk: "Фолк",
+  "Hip-Hop": "Хип-хоп",
+  Nicosia: "Никосия",
+  Limassol: "Лимассол",
+  Larnaca: "Ларнака",
+  Paphos: "Пафос",
+  "Ayia Napa": "Айя-Напа",
+  Protaras: "Протарас",
+  Paralimni: "Паралимни",
+  "Polis Chrysochous": "Полис-Хрисохус",
+  Troodos: "Троодос",
+  Kyrenia: "Кирения",
+  "Island-wide": "Весь Кипр",
+  "Solo artist": "Сольный исполнитель",
+  Singer: "Вокалист",
+  Band: "Группа",
+  DJ: "DJ",
+  Instrumentalist: "Инструменталист",
+  Duo: "Дуэт",
+  Orchestra: "Оркестр",
+  Weddings: "Свадьбы",
+  Restaurants: "Рестораны",
+  "Corporate events": "Корпоративы",
+  "Private parties": "Частные вечеринки",
+  Festivals: "Фестивали",
+  Nightlife: "Ночная жизнь",
+  "Hotels & resorts": "Отели и курорты",
+  Christenings: "Крестины",
+  Restaurant: "Ресторан",
+  "Hotel & Resort": "Отель и курорт",
+  "Bar & Lounge": "Бар и лаунж",
+  Club: "Клуб",
+  "Beach Bar": "Пляжный бар",
+  "Wedding Planner": "Свадебный организатор",
+  "Event Organizer": "Организатор мероприятий",
+  Festival: "Фестиваль",
+  "Private Organizer": "Частный организатор",
+  "Vocalist & guitarist": "Вокал и гитара",
+  Vocalist: "Вокал",
+  "Vocalist, bouzouki & laouto": "Вокал, бузуки и лауто",
+  "Vocals & guitar": "Вокал и гитара",
+  Vocals: "Вокал",
+  Bouzouki: "Бузуки",
+  Laouto: "Лауто",
+  English: "Английский",
+};
+
 export function valueLabel(lang: Lang, v: string) {
-  return lang === "el" ? (VALUE_EL[v] ?? v) : v;
+  if (lang === "el") return VALUE_EL[v] ?? v;
+  if (lang === "ru") return VALUE_RU[v] ?? v;
+  return v;
 }
 
 const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
@@ -108,13 +178,13 @@ export function englishValuesFor(q: string): string[] {
   if (folded.length < 2) return [];
   // Greek nouns inflect (γάμος / γάμοι): compare on a stem for longer words.
   const needle = folded.length > 4 ? folded.slice(0, -2) : folded;
-  return Object.entries(VALUE_EL)
-    .filter(([, el]) => fold(el).includes(needle))
-    .map(([en]) => en);
+  const hits = new Set<string>();
+  for (const map of [VALUE_EL, VALUE_RU]) for (const [en, label] of Object.entries(map)) if (fold(label).includes(needle)) hits.add(en);
+  return [...hits];
 }
 
 export function locale(lang: Lang) {
-  return lang === "el" ? "el-GR" : "en-GB";
+  return lang === "el" ? "el-GR" : lang === "ru" ? "ru-RU" : "en-GB";
 }
 
 export function formatDate(lang: Lang, iso: string | null | undefined, opts: Intl.DateTimeFormatOptions = { weekday: "short", day: "numeric", month: "short" }) {
@@ -125,9 +195,9 @@ export function formatDate(lang: Lang, iso: string | null | undefined, opts: Int
 
 export function formatEuro(lang: Lang, n: number | null | undefined) {
   if (n == null) return "—";
-  return "€" + Math.round(n).toLocaleString(lang === "el" ? "el-GR" : "en-GB");
+  return "€" + Math.round(n).toLocaleString(locale(lang));
 }
 
 export function normalizeLang(v: string | undefined | null): Lang | null {
-  return v === "el" || v === "en" ? v : null;
+  return v === "el" || v === "en" || v === "ru" ? v : null;
 }

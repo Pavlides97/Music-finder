@@ -1,10 +1,12 @@
 import { DICT } from "./dict";
 import { formatDate, formatEuro, pick, valueLabel, type Lang } from "./core";
+import { ru } from "./ru";
 
 export type { Lang } from "./core";
 
-const DICTS = { en: pick(DICT, 0), el: pick(DICT, 1) };
-export type Dict = (typeof DICTS)["en"];
+const en = pick(DICT, 0);
+export type Dict = typeof en;
+const DICTS: Record<Lang, Dict> = { en, el: pick(DICT, 1), ru };
 
 export function makeI18n(lang: Lang) {
   const t = DICTS[lang];
@@ -12,8 +14,8 @@ export function makeI18n(lang: Lang) {
   return {
     lang,
     t,
-    /** Prefer the Greek version of user content when viewing in Greek. */
-    tr: (en: string, el?: string | null) => (lang === "el" && el ? el : en),
+    /** Pick the translated version of user content for the current language (falls back to the original). */
+    tr: (en: string, el?: string | null, ru?: string | null) => (lang === "el" && el ? el : lang === "ru" && ru ? ru : en),
     /** Translate a stored value (genre, city, type…) for display. */
     L: (v: string) => valueLabel(lang, v),
     d: (iso: string | null | undefined, opts?: Intl.DateTimeFormatOptions) => formatDate(lang, iso, opts),

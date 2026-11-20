@@ -81,7 +81,7 @@ export function GigCard({ g, compact }: { g: Gig; compact?: boolean }) {
             {g.business_name}
             {g.business_verified ? <BadgeCheck className="h-3.5 w-3.5 text-violet-2" /> : null}
           </p>
-          <h3 className="display mt-0.5 line-clamp-2 text-lg font-bold leading-snug text-fg group-hover:text-flame-2">{tr(g.title, g.title_el)}</h3>
+          <h3 className="display mt-0.5 line-clamp-2 text-lg font-bold leading-snug text-fg group-hover:text-flame-2">{tr(g.title, g.title_el, g.title_ru)}</h3>
         </div>
         {g.urgent ? (
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-rose/15 px-2 py-1 text-[11px] font-bold text-rose">
@@ -95,7 +95,7 @@ export function GigCard({ g, compact }: { g: Gig; compact?: boolean }) {
         <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-flame" /> {L(g.location)}</span>
         <span className="inline-flex items-center gap-1.5"><Music2 className="h-4 w-4 text-flame" /> {L(g.performer_type)}</span>
       </div>
-      {!compact && <p className="line-clamp-2 text-sm text-muted">{tr(g.description, g.description_el)}</p>}
+      {!compact && <p className="line-clamp-2 text-sm text-muted">{tr(g.description, g.description_el, g.description_ru)}</p>}
       <div className="flex flex-wrap gap-1.5">
         {g.genres.slice(0, 3).map((x) => (
           <span key={x} className="chip">{L(x)}</span>
@@ -142,7 +142,7 @@ export function VenueCard({ b }: { b: Business }) {
         </div>
       </div>
       <div className="space-y-3 p-4">
-        <p className="line-clamp-2 text-sm text-muted">{tr(b.description, b.description_el)}</p>
+        <p className="line-clamp-2 text-sm text-muted">{tr(b.description, b.description_el, b.description_ru)}</p>
         <div className="flex flex-wrap gap-1.5">
           {b.music_wanted.slice(0, 3).map((g) => (
             <span key={g} className="chip">{L(g)}</span>

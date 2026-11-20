@@ -51,6 +51,7 @@ export type Business = {
   address: string | null;
   description: string;
   description_el: string | null;
+  description_ru: string | null;
   music_wanted: string[];
   budget_min: number | null;
   budget_max: number | null;
@@ -81,6 +82,8 @@ export type Gig = {
   description: string;
   title_el: string | null;
   description_el: string | null;
+  title_ru: string | null;
+  description_ru: string | null;
   deadline: string;
   status: "open" | "closed" | "filled";
   urgent: number;
@@ -342,10 +345,10 @@ export function searchGigs(f: GigFilters, limit = 60): Gig[] {
   const params: (string | number)[] = [today()];
   if (f.q) {
     const terms = [f.q, ...englishValuesFor(f.q)];
-    where.push("(" + terms.map(() => "g.title LIKE ? OR g.description LIKE ? OR g.title_el LIKE ? OR g.description_el LIKE ? OR b.name LIKE ? OR g.location LIKE ? OR g.genres LIKE ? OR g.event_type LIKE ?").join(" OR ") + ")");
+    where.push("(" + terms.map(() => "g.title LIKE ? OR g.description LIKE ? OR g.title_el LIKE ? OR g.description_el LIKE ? OR g.title_ru LIKE ? OR g.description_ru LIKE ? OR b.name LIKE ? OR g.location LIKE ? OR g.genres LIKE ? OR g.event_type LIKE ?").join(" OR ") + ")");
     for (const term of terms) {
       const like = `%${term}%`;
-      params.push(like, like, like, like, like, like, like, like);
+      params.push(like, like, like, like, like, like, like, like, like, like);
     }
   }
   if (f.location) {

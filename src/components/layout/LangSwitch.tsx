@@ -20,7 +20,7 @@ export function LangSwitch({ className }: { className?: string }) {
   return (
     <div role="group" aria-label={t.common.language} className={cn("glass inline-flex items-center rounded-full p-0.5 text-xs font-bold", pending && "opacity-60", className)}>
       <Languages className="ml-2 mr-1 h-3.5 w-3.5 text-muted" aria-hidden />
-      {(["el", "en"] as const).map((l) => (
+      {(["el", "en", "ru"] as const).map((l) => (
         <button
           key={l}
           type="button"
@@ -28,7 +28,7 @@ export function LangSwitch({ className }: { className?: string }) {
           aria-pressed={lang === l}
           className={cn("rounded-full px-2.5 py-1 transition", lang === l ? "bg-fg text-ink" : "text-muted hover:text-fg")}
         >
-          {l === "el" ? "ΕΛ" : "EN"}
+          {l === "el" ? "ΕΛ" : l === "ru" ? "RU" : "EN"}
         </button>
       ))}
     </div>
